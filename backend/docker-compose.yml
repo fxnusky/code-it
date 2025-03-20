@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+  backend:
+    build: ./backend
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
