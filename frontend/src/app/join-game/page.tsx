@@ -24,7 +24,7 @@ export default function JoinGame() {
             required
           />
           <button 
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/player")}
             className={styles.primaryButton}
             style={{ width: '100%' }}
           >

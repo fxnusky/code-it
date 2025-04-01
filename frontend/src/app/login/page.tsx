@@ -35,6 +35,8 @@ export default function LoginPage() {
                 >
                   Log out to switch accounts
                 </button>
+              </div>
+              <div className={styles.buttonContainer}>
                 <button 
                   onClick={() => router.push("/profile")}
                   className={styles.secondaryButton}
