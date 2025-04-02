@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from '../page.module.css';
+import { connectionService } from '../../../sevices/ws_connection.service';
 
 export default function JoinGame() {
   const router = useRouter();
@@ -39,9 +40,25 @@ export default function JoinGame() {
     setErrors(newErrors);
 
     if (isValid) {
+      connect({nickname, roomCode})
       router.push(`/player?room=${encodeURIComponent(roomCode)}&nickname=${encodeURIComponent(nickname)}`);
     }
   }
+  const handleMessage = (message: string) => {
+    console.log('Received game message:', message);
+  };
+  const connect = async ({nickname, roomCode}: {
+    nickname: string;
+    roomCode: string;
+  }) => {
+    try {
+        await connectionService.player_connect(roomCode, nickname);
+        connectionService.addMessageHandler(handleMessage);
+        
+    } catch (error) {
+        console.error('Connection failed:', error);
+    }
+  };
 
   return (
     <div className={styles.container}>

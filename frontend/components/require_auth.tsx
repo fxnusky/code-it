@@ -11,7 +11,7 @@ export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (isInitialized && !isAuthenticated) {
-      router.push(`/login?redirectTo=${encodeURIComponent(pathname || '/join-game')}`);
+      router.push(`/login?redirectTo=${encodeURIComponent(pathname || '/join-room')}`);
     }
   }, [isAuthenticated, isInitialized, router, pathname]);
 
