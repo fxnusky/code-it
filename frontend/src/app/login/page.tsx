@@ -6,7 +6,7 @@ import { useAuth } from '../../../contexts/auth_context';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() { 
-  const [redirectTo, setRedirectTo] = useState<string>("/join-game");
+  const [redirectTo, setRedirectTo] = useState<string>("/join-room");
   const { isAuthenticated, email, logout } = useAuth();
   const router = useRouter();
   
