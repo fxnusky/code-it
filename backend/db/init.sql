@@ -5,6 +5,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL
 );
 
-INSERT INTO users (google_id, name, email) VALUES
-('google-id-123', 'John Doe', 'john@example.com'),
-('google-id-456', 'Jane Smith', 'jane@example.com');
+CREATE TABLE IF NOT EXISTS players (
+    id SERIAL PRIMARY KEY,
+    nickname VARCHAR(100) NOT NULL,
+    room_code VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rooms (
+    id SERIAL PRIMARY KEY,
+    room_code VARCHAR(100) NOT NULL
+);
