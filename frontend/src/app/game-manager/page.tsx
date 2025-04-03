@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import styles from '../page.module.css';
 import PlayerService from '../../../sevices/player.service';
+import { useWSConnection } from '../../../contexts/ws_connection_context';
+import { useCallback } from 'react';
 
 interface Player {
   id: string;
@@ -11,20 +13,25 @@ interface Player {
 export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [roomCode, setRoomCode] = useState('123456');
+  const connectionService = useWSConnection();
+  useEffect(() => {
+    connectionService.sendMessage({"action": "confirm_manager"})
+    setRoomCode("123456");
+  }, [connectionService]);
 
-  const fetchPlayers = async () => {
-
+  const fetchPlayers = useCallback(async () => {
     const response = await PlayerService.getPlayers({ room_code: roomCode });
     if (response && response.data) {
-        setPlayers(response.data);
+      setPlayers(response.data);
     }
-  };
+  }, [roomCode]);
 
   useEffect(() => {
     if (roomCode) {
       fetchPlayers();
     }
-  }, [roomCode]);
+  }, [roomCode, fetchPlayers]);
+
 
   return (
     <div className={styles.container}>

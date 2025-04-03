@@ -13,7 +13,11 @@ game_connection_service = GameConnectionService()
 @router.websocket("/ws/player/{room_code}")
 async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickname: str, db: Session = Depends(get_db)):
     try:
-        await game_connection_service.connect_player(websocket, room_code, nickname, db)
+        response = await game_connection_service.connect_player(websocket, room_code, nickname, db)
+        if (response):
+            await game_connection_service.send_message(response, websocket)
+            await game_connection_service.broadcast_players(response, room_code)
+
         
         while True:
             try:
@@ -41,11 +45,11 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
                 })
 
     except WebSocketDisconnect:
-        game_connection_service.disconnect_player(websocket, room_code)
+        await game_connection_service.disconnect_player(websocket, room_code)
         
     except Exception as e:
         await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason=str(e))
-        game_connection_service.disconnect_player(websocket, room_code)
+        await game_connection_service.disconnect_player(websocket, room_code)
         raise
     
 @router.websocket("/ws/manager")
@@ -55,6 +59,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, db: Session = Depends
     try:
         room_code = game_connection_service.get_new_room_code()
         game_connection_service.create_room(room_code, websocket, db)
+        await game_connection_service.send_message({"room_code": room_code}, websocket)
     except Exception as e:
         await websocket.close(code=4500, reason=str(e))
         return
