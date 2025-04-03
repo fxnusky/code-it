@@ -1,0 +1,126 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import styles from '../page.module.css';
+import { connectionService } from '../../../sevices/ws_connection.service';
+
+export default function JoinGame() {
+  const router = useRouter();
+  const [roomCode, setRoomCode] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [errors, setErrors] = useState({
+    roomCode: '',
+    nickname: ''
+  });
+
+  function handleJoinRoom() {
+    let isValid = true;
+    const newErrors = {
+      roomCode: '',
+      nickname: ''
+    };
+
+    if (!roomCode.trim()) {
+      newErrors.roomCode = 'Room code is required';
+      isValid = false;
+    }else if (!/^\d{6}$/.test(roomCode)) {
+      newErrors.nickname = 'Room code must have 6 digits';
+      isValid = false;
+    }
+
+    if (!nickname.trim()) {
+      newErrors.nickname = 'Nickname is required';
+      isValid = false;
+    } else if (nickname.length > 20) {
+      newErrors.nickname = 'Nickname must be less than 20 characters';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    if (isValid) {
+      connect({nickname, roomCode})
+      router.push(`/player?room=${encodeURIComponent(roomCode)}&nickname=${encodeURIComponent(nickname)}`);
+    }
+  }
+  const handleMessage = (message: string) => {
+    console.log('Received game message:', message);
+  };
+  const connect = async ({nickname, roomCode}: {
+    nickname: string;
+    roomCode: string;
+  }) => {
+    try {
+        await connectionService.player_connect(roomCode, nickname);
+        connectionService.addMessageHandler(handleMessage);
+        
+    } catch (error) {
+        console.error('Connection failed:', error);
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.cardContent}>
+          <h1 className={styles.title}>Join a game</h1>
+          
+          <div className={styles.inputContainer}>
+            <input
+              type="text"
+              placeholder="Room code"
+              className={`${styles.inputField} ${errors.roomCode ? styles.errorInput : ''}`}
+              value={roomCode}
+              onChange={(e) => {
+                setRoomCode(e.target.value);
+                setErrors({...errors, roomCode: ''});
+              }}
+              required
+            />
+            {errors.roomCode && (
+              <p className={styles.errorText}>{errors.roomCode}</p>
+            )}
+          </div>
+
+          <div className={styles.inputContainer}>
+            <input
+              type="text"
+              placeholder="Your nickname"
+              className={`${styles.inputField} ${errors.nickname ? styles.errorInput : ''}`}
+              value={nickname}
+              onChange={(e) => {
+                setNickname(e.target.value);
+                setErrors({...errors, nickname: ''});
+              }}
+              required
+              maxLength={20}
+            />
+            {errors.nickname && (
+              <p className={styles.errorText}>{errors.nickname}</p>
+            )}
+          </div>
+
+          <button 
+            onClick={handleJoinRoom}
+            className={styles.primaryButton}
+            style={{ width: '100%' }}
+          >
+            Join Room
+          </button>
+        </div>
+      </div>   
+      <div className={styles.card}>
+        <div className={styles.cardContent}>
+          <p className={styles.createGameText}>Want to create your own game?</p>
+          <button 
+            onClick={() => router.push("/profile")}
+            className={styles.secondaryButton}
+          >
+            Enter the application
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

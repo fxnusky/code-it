@@ -1,12 +1,14 @@
 "use client";
 import { ProtectedButton } from '../../../components/protected_button';
 import { useEffect, useState } from 'react';
-import styles from './page.module.css';
+import styles from '../page.module.css';
 import { useAuth } from '../../../contexts/auth_context';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() { 
-  const [redirectTo, setRedirectTo] = useState<string>("/join-game");
+  const [redirectTo, setRedirectTo] = useState<string>("/join-room");
   const { isAuthenticated, email, logout } = useAuth();
+  const router = useRouter();
   
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -32,6 +34,14 @@ export default function LoginPage() {
                   className={styles.primaryButton}
                 >
                   Log out to switch accounts
+                </button>
+              </div>
+              <div className={styles.buttonContainer}>
+                <button 
+                  onClick={() => router.push("/profile")}
+                  className={styles.secondaryButton}
+                >
+                  Back to the application
                 </button>
               </div>
             </>
