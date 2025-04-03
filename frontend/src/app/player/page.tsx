@@ -7,6 +7,7 @@ export default function Profile() {
     //TODO: improve
     const [roomCode] = useState("123456");
     const [nickname] = useState("John Doe");
+    const [state, setState] = useState('')
     const connectionService = useWSConnection();
     useEffect(() => {
         connectionService.sendMessage({"action": "confirm_player"})
@@ -16,10 +17,29 @@ export default function Profile() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.card}>
-                <p className={styles.title}>{nickname}</p>
-            </div>
-            <p className={styles.createGameText}>You joined the room {roomCode}.</p>
+            {state == "room_opened" &&  (
+                <div>
+                    <div className={styles.card}>
+                        <p className={styles.title}>{nickname}</p>
+                    </div>
+                    <p className={styles.createGameText}>You joined the room {roomCode}.</p>
+                </div>
+            )}
+            {state == "question" &&  (
+                <button className={styles.button}>Send question</button>
+            )}
+            {state == "question_submitted" &&  (
+                <p>Question submitted!</p>
+            )}
+            {state == "question_results" &&  (
+                <p>Question results</p>
+            )}
+            {state == "ranking" &&  (
+                <p>Ranking</p>
+            )}
+            {state == "game_ended" &&  (
+                <button className={styles.button}>Close</button>
+            )}
         </div>
     );
 }

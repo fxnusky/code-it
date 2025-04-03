@@ -13,6 +13,7 @@ interface Player {
 export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [roomCode, setRoomCode] = useState('123456');
+  const [state, setState] = useState('')
   const connectionService = useWSConnection();
   useEffect(() => {
     connectionService.sendMessage({"action": "confirm_manager"})
@@ -35,15 +36,28 @@ export default function Manager() {
 
   return (
     <div className={styles.container}>
-        <h1>Player Manager</h1>
-        <div className={styles.playerList}>
-            <h2>Players: ({players.length})</h2>
-            <ul>
+      {state == "room_opened" &&  (
+        <div>
+          <h2>Players: ({players.length})</h2>
+          <ul>
             {players.map(player => (
                 <li key={player.id}>{player.nickname}</li>
             ))}
-            </ul>
+          </ul>
         </div>
+      )}
+      {state == "question" &&  (
+        <button className={styles.button}>End questions and show results</button>
+      )}
+      {state == "question_results" &&  (
+        <button className={styles.button}>Show ranking</button>
+      )}
+      {state == "ranking" &&  (
+        <button className={styles.button}>Show ranking</button>
+      )}
+      {state == "game_ended" &&  (
+        <button className={styles.button}>Close</button>
+      )}
     </div>
   );
 }
