@@ -26,7 +26,7 @@ export default function LoginPage() {
             <>
               <h1 className={styles.title}>Welcome back!</h1>
               <p className={styles.description}>
-                You're already logged in with the Google account: <strong>{email}</strong>
+                You&apos;re already logged in with the Google account: <strong>{email}</strong>
               </p>
               <div className={styles.buttonContainer}>
                 <button 

@@ -105,6 +105,20 @@ class WsConnectionService {
   addMessageHandler(handler: MessageHandler): void {
     this.messageHandlers.push(handler);
   }
+  
+  sendMessage(messageData: {[key: string]: any} ): void {
+    if (!this.socket || this.connectionState !== 'open') {
+      console.error('WebSocket is not connected');
+      return;
+    }
+    
+    try {
+      this.socket.send(JSON.stringify(messageData));
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  }
+
 
   private cleanUp(): void {
     if (this.socket) {

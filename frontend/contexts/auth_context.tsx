@@ -1,4 +1,3 @@
-// contexts/auth_context.tsx
 'use client';
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { setCookie, deleteCookie, getCookie } from 'cookies-next';
