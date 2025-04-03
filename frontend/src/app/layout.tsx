@@ -1,5 +1,6 @@
 import "./globals.css";
 import { AuthProvider } from "../../contexts/auth_context";
+import { WSProvider } from "../../contexts/ws_connection_context";
 
 export default function RootLayout({
   children,
@@ -10,9 +11,11 @@ export default function RootLayout({
   return (
     <html data-lt-installed="true" suppressHydrationWarning>
       <body >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <WSProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </WSProvider>
       </body>
     </html>
   );

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from '../page.module.css';
-import { connectionService } from '../../../sevices/ws_connection.service';
+import { useWSConnection } from '../../../contexts/ws_connection_context';
 
 export default function JoinGame() {
   const router = useRouter();
@@ -13,6 +13,8 @@ export default function JoinGame() {
     roomCode: '',
     nickname: ''
   });
+  const connectionService = useWSConnection();
+
 
   function handleJoinRoom() {
     let isValid = true;
