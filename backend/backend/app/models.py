@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, Text
 from .database import Base
 
 class User(Base):
@@ -22,3 +22,18 @@ class Room(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     room_code = Column(String)
+    template_id = Column(Integer, ForeignKey('game_templates.id', ondelete="CASCADE"), nullable=False)
+
+class GameTemplate(Base):
+    __tablename__ = "game_templates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+
+class Question(Base):
+    __tablename__ = "questions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    description = Column(Text, nullable=False)
+    template_id = Column(Integer, ForeignKey('game_templates.id', ondelete="CASCADE"), nullable=False)
+    order_key = Column(Float, nullable=False)
+    time_limit = Column(Integer, nullable=False) 
