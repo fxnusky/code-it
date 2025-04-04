@@ -4,6 +4,7 @@ import styles from '../page.module.css';
 import PlayerService from '../../../services/player.service';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
 import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Player {
   id: string;
@@ -17,6 +18,7 @@ export default function Manager() {
   const [questionIds, setQuestionIds] = useState<number[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const connectionService = useWSConnection();
+  const router = useRouter();
 
   
   const handleMessage = (message: string) => {
@@ -46,14 +48,21 @@ export default function Manager() {
   };
 
   const handleStartGame = () =>{
+    // Send question id
     connectionService.sendMessage({"action": "start_game"})
-
   }
   const handleEndQuestion = () =>{
+    // Send question id
     connectionService.sendMessage({"action": "end_question"})
   }
   const handleNextQuestion = () =>{
-    connectionService.sendMessage({"action": "next_question"})
+    if (questionIndex +1 < questionIds.length){
+      setQuestionIndex(questionIndex + 1)
+      // Send question id
+      connectionService.sendMessage({"action": "next_question"})
+    }else{
+      connectionService.sendMessage({"action": "end_game"})
+    }
   }
   const handleShowRanking = () =>{
     connectionService.sendMessage({"action": "show_ranking"})
@@ -61,7 +70,6 @@ export default function Manager() {
 
   useEffect(() => {
     connectionService.addMessageHandler(handleMessage);
-    connectionService.sendMessage({"action": "confirm_manager"})
     setRoomCode("123456");
   }, [connectionService]);
 
@@ -82,19 +90,20 @@ export default function Manager() {
                 <li key={player.id}>{player.nickname}</li>
             ))}
           </ul>
+          <button className={styles.button} onClick={handleStartGame}>Start Game</button>
         </div>
       )}
       {state == "question" &&  (
-        <button className={styles.button}>End questions and show results</button>
+        <button className={styles.button} onClick={handleEndQuestion}>End questions and show results</button>
       )}
       {state == "question_results" &&  (
-        <button className={styles.button}>Show ranking</button>
+        <button className={styles.button} onClick={handleShowRanking}>Show ranking</button>
       )}
       {state == "ranking" &&  (
-        <button className={styles.button}>Show ranking</button>
+        <button className={styles.button} onClick={handleNextQuestion}>Next question</button>
       )}
       {state == "game_ended" &&  (
-        <button className={styles.button}>Close</button>
+        <button className={styles.button} onClick={() => {router.push("/join-game")}}>Close</button>
       )}
     </div>
   );
