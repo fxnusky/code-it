@@ -18,9 +18,8 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
         response = await game_connection_service.connect_player(websocket, room_code, nickname, db)
         if (response["status"] =="success"):
             await game_connection_service.send_message({"action": "joined"}, websocket)
-            await game_connection_service.broadcast_players(response, room_code)
-
-        
+            await game_connection_service.send_manager_message({"action": "player_joined"}, room_code)
+       
         while True:
             try:
                 data = await websocket.receive_json()

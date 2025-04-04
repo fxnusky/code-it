@@ -84,6 +84,9 @@ class GameConnectionService:
 
     async def send_message(self, message: dict, websocket: WebSocket):
         await websocket.send_json(message)
+    
+    async def send_manager_message(self, message: dict, room_code: str):
+        await self.rooms[room_code]["manager"].send_json(message)
 
     async def broadcast_players(self, content: dict, room_code: str):
         for connection in self.rooms[room_code]["players"]:

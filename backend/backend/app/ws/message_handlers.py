@@ -35,3 +35,9 @@ async def handle_manager_message(data: dict, room_code: str, game_connection_ser
 
 async def handle_player_message(data: dict, room_code: str, websocket: WebSocket, game_connection_service: GameConnectionService):
     logger.info(f"Received player message: {data}")
+    if data.action == "submit_question":
+        # submit question and if correct send this message:
+        game_connection_service.send_message({"action": "question_submitted"}, websocket)
+        game_connection_service.send_manager_message({"action": "player_submitted"}, room_code)
+    else:
+        logger.info(f"Unknown message from manager {data}")
