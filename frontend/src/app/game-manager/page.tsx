@@ -13,9 +13,54 @@ interface Player {
 export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [roomCode, setRoomCode] = useState('123456');
-  const [state, setState] = useState('')
+  const [state, setState] = useState('');
+  const [questionIds, setQuestionIds] = useState<number[]>([]);
+  const [questionIndex, setQuestionIndex] = useState(0);
   const connectionService = useWSConnection();
+
+  
+  const handleMessage = (message: string) => {
+    console.log('Received game message:', message);
+    const message_json = JSON.parse(message);
+    if (message_json.action === "room_opened"){
+      setState(message_json.action);
+      setQuestionIds([1, 2, 3, 4]);
+      // set room_code and question ids in order
+    }else if (message_json.action === "player_joined"){
+      fetchPlayers();
+    }else if (message_json.action === "question"){
+      setState(message_json.action);
+      // recieve question and set it
+    }else if (message_json.action === "player_submitted"){
+      // set the amount of submissions
+    }else if (message_json.action === "question_results"){
+      setState(message_json.action);
+      // recieve question results and set it
+    }else if (message_json.action === "ranking"){
+      setState(message_json.action);
+      // recieve ranking and set it
+    }else{
+      console.error("Unknown message from server ", message)
+    }
+    
+  };
+
+  const handleStartGame = () =>{
+    connectionService.sendMessage({"action": "start_game"})
+
+  }
+  const handleEndQuestion = () =>{
+    connectionService.sendMessage({"action": "end_question"})
+  }
+  const handleNextQuestion = () =>{
+    connectionService.sendMessage({"action": "next_question"})
+  }
+  const handleShowRanking = () =>{
+    connectionService.sendMessage({"action": "show_ranking"})
+  }
+
   useEffect(() => {
+    connectionService.addMessageHandler(handleMessage);
     connectionService.sendMessage({"action": "confirm_manager"})
     setRoomCode("123456");
   }, [connectionService]);
@@ -26,13 +71,6 @@ export default function Manager() {
       setPlayers(response.data);
     }
   }, [roomCode]);
-
-  useEffect(() => {
-    if (roomCode) {
-      fetchPlayers();
-    }
-  }, [roomCode, fetchPlayers]);
-
 
   return (
     <div className={styles.container}>

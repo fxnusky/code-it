@@ -2,7 +2,6 @@
 import { RequireAuth } from "../../../components/require_auth";
 import styles from '../page.module.css';
 import { useRouter } from 'next/navigation';
-import { connectionService } from '../../../services/ws_connection.service';
 import { useAuth } from "../../../contexts/auth_context";
 import { useWSConnection } from "../../../contexts/ws_connection_context";
 
@@ -17,9 +16,7 @@ export default function Profile() {
       };
       const connect = async () => {
         try {
-            await connectionService.manager_connect(token);
-            
-            connectionService.addMessageHandler(handleMessage);
+            await connectionService.manager_connect();
             
         } catch (error) {
             console.error('Connection failed:', error);
