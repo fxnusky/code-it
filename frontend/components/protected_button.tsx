@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/auth_context';
 import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useRouter } from 'next/navigation';
 import AuthService from '../services/auth.service';
-import { ApiResponse } from '../services/api_response';
 
 const GOOGLE_CLIENT_ID = "195860473074-e880uq1l37obetripidmk7odc2kcb184.apps.googleusercontent.com"
 

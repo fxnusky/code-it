@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status, Query, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status, Query
 from sqlalchemy.orm import Session
 from ..services.game_connection_service import GameConnectionService
 from .message_handlers import handle_manager_message, handle_player_message
@@ -16,15 +16,14 @@ game_connection_service = GameConnectionService()
 async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickname: str, db: Session = Depends(get_db)):
     try:
         response = await game_connection_service.connect_player(websocket, room_code, nickname, db)
-        if (response):
-            await game_connection_service.send_message(response, websocket)
-            await game_connection_service.broadcast_players(response, room_code)
-
-        
+        if (response["status"] =="success"):
+            await game_connection_service.send_message({"action": "joined"}, websocket)
+            await game_connection_service.send_manager_message({"action": "player_joined"}, room_code)
+       
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_player_message(data, room_code, websocket)
+                await handle_player_message(data, room_code, websocket, game_connection_service)
                 
             except WebSocketDisconnect:
                 break
@@ -71,7 +70,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         room_code = game_connection_service.get_new_room_code()
         auth_service.update_active_room(user.google_id, room_code)
         game_connection_service.create_room(room_code, websocket, db)
-        await game_connection_service.send_message({"room_code": room_code}, websocket)
+        await game_connection_service.send_message({"action": "room_opened", "room_code": room_code}, websocket)
     except Exception as e:
         await websocket.close(code=4500, reason=str(e))
         return
@@ -80,7 +79,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_manager_message(data, room_code, websocket)
+                await handle_manager_message(data, room_code, game_connection_service)
             except WebSocketDisconnect:
                 break
     except Exception as e:

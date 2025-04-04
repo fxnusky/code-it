@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, ReactNode } from 'react';
-import { connectionService } from '../sevices/ws_connection.service';
+import { connectionService } from '../services/ws_connection.service';
 
 const WSConnectionContext = createContext(connectionService);
 
