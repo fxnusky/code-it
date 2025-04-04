@@ -20,7 +20,6 @@ def get_rooms(db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(
-            status="error",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
@@ -47,7 +46,6 @@ def delete_player(
         raise
     except Exception as e:
         raise HTTPException(
-            status="error",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )

@@ -55,13 +55,13 @@ class WsConnectionService {
     });
   }
 
-  async manager_connect(): Promise<WebSocket> {
+  async manager_connect(token: string): Promise<WebSocket> {
     if (this.socket && this.connectionState === 'open') {
       console.warn('WebSocket already connected');
       return this.socket;
     }
 
-    const wsUrl = `${endpoint.wsURL}/ws/manager`;
+    const wsUrl = `${endpoint.wsURL}/ws/manager?token=${encodeURIComponent(token)}`;
     
     return new Promise((resolve, reject) => {
       try {
@@ -119,6 +119,10 @@ class WsConnectionService {
     }
   }
 
+
+  getConnectionState(): string {
+    return this.connectionState;
+  }
 
   private cleanUp(): void {
     if (this.socket) {

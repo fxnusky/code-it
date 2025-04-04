@@ -8,6 +8,7 @@ class User(Base):
     google_id = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     name = Column(String)
+    active_room = Column(String)
     
 class Player(Base):
     __tablename__ = "players"

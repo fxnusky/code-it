@@ -62,13 +62,11 @@ class PlayerRepository:
             return self.db.query(Player).filter(Player.room_code == room_code).all()
         except SQLAlchemyError as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error while retrieving players"
             )
         except Exception as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unexpected error while retrieving players"
             )

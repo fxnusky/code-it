@@ -27,7 +27,6 @@ def get_players(room_code: str, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(
-            status="error",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )

@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string>('');
-  const [email, setEmail] = useState<string | null>(null);  // Track email
+  const [email, setEmail] = useState<string | null>(null); 
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -39,12 +39,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setEmail(decoded.email);
     setCookie('token', newToken, {
       maxAge: 60 * 60 * 24 * 7,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
     });
     setCookie('email', decoded.email, {
       maxAge: 60 * 60 * 24 * 7,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
     });
   };
