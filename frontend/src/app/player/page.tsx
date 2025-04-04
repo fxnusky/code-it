@@ -2,6 +2,7 @@
 import styles from '../page.module.css'
 import { useState, useEffect } from 'react';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
+import { useRouter } from 'next/navigation';
 
 export default function Profile() {
     //TODO: improve
@@ -9,6 +10,8 @@ export default function Profile() {
     const [nickname] = useState("John Doe");
     const [state, setState] = useState('')
     const connectionService = useWSConnection();
+    const router = useRouter();
+
     useEffect(() => {
         connectionService.addMessageHandler(handleMessage);
         connectionService.sendMessage({"action": "confirm_player"})
@@ -40,7 +43,9 @@ export default function Profile() {
         
       };
     
-    
+    const handleSubmitQuestion = () => {
+        connectionService.sendMessage({"action": "submit_question"})
+    }
 
     return (
         <div className={styles.container}>
@@ -53,7 +58,7 @@ export default function Profile() {
                 </div>
             )}
             {state == "question" &&  (
-                <button className={styles.button}>Send question</button>
+                <button className={styles.button} onClick={handleSubmitQuestion}>Send question</button>
             )}
             {state == "question_submitted" &&  (
                 <p>Question submitted!</p>
@@ -65,7 +70,7 @@ export default function Profile() {
                 <p>Ranking</p>
             )}
             {state == "game_ended" &&  (
-                <button className={styles.button}>Close</button>
+                <button className={styles.button} onClick={() => {router.push("/profile")}}>Close</button>
             )}
         </div>
     );
