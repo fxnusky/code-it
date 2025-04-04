@@ -13,7 +13,8 @@ export default function Profile() {
 
   const connect = async () => {
     try {
-        await connectionService.manager_connect(token);
+        // TEMPLATE_ID HARDCODED TO 1
+        await connectionService.manager_connect(token, 1);
         
     } catch (error) {
         console.error('Connection failed:', error);
