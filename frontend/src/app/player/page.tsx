@@ -10,14 +10,41 @@ export default function Profile() {
     const [state, setState] = useState('')
     const connectionService = useWSConnection();
     useEffect(() => {
+        connectionService.addMessageHandler(handleMessage);
         connectionService.sendMessage({"action": "confirm_player"})
     }, [connectionService]);
+
+    const handleMessage = (message: string) => {
+        console.log('Received game message:', message);
+        const message_json = JSON.parse(message);
+        if (message_json.action === "joined"){
+            setState("room");
+        }else if (message_json.action === "question"){
+            setState(message_json.action);
+    
+        }else if (message_json.action === "question_submitted"){
+            setState(message_json.action);
+      
+        }else if (message_json.action === "question_results"){
+            setState(message_json.action);
+    
+        }else if (message_json.action === "ranking"){
+            setState(message_json.action);
+    
+        }else if (message_json.action === "game_ended"){
+            setState(message_json.action);
+    
+        }else{
+            console.error("Unknown message from server ", message)
+        }
+        
+      };
     
     
 
     return (
         <div className={styles.container}>
-            {state == "room_opened" &&  (
+            {state == "room" &&  (
                 <div>
                     <div className={styles.card}>
                         <p className={styles.title}>{nickname}</p>
