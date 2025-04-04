@@ -5,16 +5,19 @@ from sqlalchemy.orm import Session
 from ..repositories.player_repository import PlayerRepository
 from ..database import get_db
 from ..repositories.room_repository import RoomRepository
+from ..repositories.game_template_repository import GameTemplateRepository
 
 class GameConnectionService:
     def __init__(self):
         self.rooms: Dict[str, Dict[str, Optional[WebSocket] | Set[WebSocket]]] = {}
     
-    def create_room(self, room_code: str, manager: WebSocket, db: Session):
+    def create_room(self, room_code: str, manager: WebSocket, template_id: int,  db: Session):
         try: 
             room_repository = RoomRepository(db)
+            game_template_repository = GameTemplateRepository(db)
+            template = game_template_repository.get_template_by_id(template_id)
             room = room_repository.create_room(room_code)
-            if room and room_code not in self.rooms:
+            if template and room and room_code not in self.rooms:
                 self.rooms[room_code] = {"manager": manager, "players": set()}
         except HTTPException:
             raise

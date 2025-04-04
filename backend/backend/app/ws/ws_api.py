@@ -55,7 +55,7 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
         raise
     
 @router.websocket("/ws/manager")
-async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(...), db: Session = Depends(get_db)):
+async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(...), template_id: str = Query(...), db: Session = Depends(get_db)):
     await websocket.accept()
     try:
         user_repository = UserRepository(db)
@@ -69,7 +69,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
             return
         room_code = game_connection_service.get_new_room_code()
         auth_service.update_active_room(user.google_id, room_code)
-        game_connection_service.create_room(room_code, websocket, db)
+        game_connection_service.create_room(room_code, websocket, template_id, db)
         await game_connection_service.send_message({"action": "room_opened", "room_code": room_code}, websocket)
     except Exception as e:
         await websocket.close(code=4500, reason=str(e))
