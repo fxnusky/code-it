@@ -26,7 +26,6 @@ def validate_token(request: TokenRequest, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(
-            status="error",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
@@ -46,7 +45,6 @@ def get_users(db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(
-            status="error",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )

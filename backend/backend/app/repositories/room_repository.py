@@ -40,7 +40,6 @@ class RoomRepository:
             room = self.db.query(Room).filter(Room.room_code == room_code).first()
             if not room:
                 raise HTTPException(
-                    status="error",
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Room with code {room_code} not found"
                 )
@@ -49,7 +48,6 @@ class RoomRepository:
             self.db.commit()
         except SQLAlchemyError as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error while retrieving players"
             )
@@ -65,13 +63,11 @@ class RoomRepository:
             return self.db.query(Room).filter(Room.room_code == room_code).first()
         except SQLAlchemyError as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error while retrieving players"
             )
         except Exception as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unexpected error while retrieving players"
             )
@@ -81,13 +77,11 @@ class RoomRepository:
              return self.db.query(Room).all()
         except SQLAlchemyError as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error while retrieving players"
             )
         except Exception as e:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unexpected error while retrieving players"
             )

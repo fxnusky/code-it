@@ -1,9 +1,11 @@
 import json
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 from ..services.game_connection_service import GameConnectionService
 from .message_handlers import handle_manager_message, handle_player_message
 from ..database import get_db
+from ..services.auth_service import AuthService
+from ..repositories.user_repository import UserRepository
 
 
 router = APIRouter()
@@ -34,7 +36,7 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
                     "error": "INVALID_JSON",
                     "detail": "Invalid JSON format"
                 })
-                
+                break
             except Exception as e:
                 #TODO: change to message
                 await websocket.send_json({
@@ -43,6 +45,7 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
                     "error": "MESSAGE_PROCESSING_ERROR",
                     "detail": str(e)
                 })
+                break
 
     except WebSocketDisconnect:
         await game_connection_service.disconnect_player(websocket, room_code)
@@ -53,11 +56,20 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
         raise
     
 @router.websocket("/ws/manager")
-async def websocket_manager_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
+async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(...), db: Session = Depends(get_db)):
     await websocket.accept()
-        
     try:
+        user_repository = UserRepository(db)
+        auth_service = AuthService(user_repository)
+        user = auth_service.get_or_create_user(token)
+        if user.active_room:
+            await websocket.close(
+                code=4001,
+                reason="User already has an active room"
+            )
+            return
         room_code = game_connection_service.get_new_room_code()
+        auth_service.update_active_room(user.google_id, room_code)
         game_connection_service.create_room(room_code, websocket, db)
         await game_connection_service.send_message({"room_code": room_code}, websocket)
     except Exception as e:
@@ -66,7 +78,10 @@ async def websocket_manager_endpoint(websocket: WebSocket, db: Session = Depends
         
     try:
         while True:
-            data = await websocket.receive_json()
-            await handle_manager_message(data, room_code, websocket)
+            try:
+                data = await websocket.receive_json()
+                await handle_manager_message(data, room_code, websocket)
+            except WebSocketDisconnect:
+                break
     except Exception as e:
         await websocket.close(code=1011, reason=str(e))

@@ -2,7 +2,6 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from fastapi import HTTPException, status
 from app.repositories.user_repository import UserRepository
-import os
 
 GOOGLE_CLIENT_ID = "195860473074-e880uq1l37obetripidmk7odc2kcb184.apps.googleusercontent.com"
 
@@ -16,7 +15,6 @@ class AuthService:
             return id_info
         except ValueError:
             raise HTTPException(
-                status="error",
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid Google token",
             )
@@ -34,3 +32,10 @@ class AuthService:
             return user
         except HTTPException:
             raise
+
+    def update_active_room(self, google_id: str, room_code: str):
+        try:
+            self.user_repository.update_active_room(google_id, room_code)
+        except HTTPException:
+            raise
+
