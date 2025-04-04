@@ -16,17 +16,21 @@ class AuthService:
             return id_info
         except ValueError:
             raise HTTPException(
+                status="error",
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid Google token",
             )
 
     def get_or_create_user(self, token: str):
-        id_info = self.verify_google_token(token)
-        user = self.user_repository.get_user_by_google_id(id_info["sub"])
-        if not user:
-            user = self.user_repository.create_user(
-                google_id=id_info["sub"],
-                email=id_info["email"],
-                name=id_info.get("name", ""),
-            )
-        return user
+        try:
+            id_info = self.verify_google_token(token)
+            user = self.user_repository.get_user_by_google_id(id_info["sub"])
+            if not user:
+                user = self.user_repository.create_user(
+                    google_id=id_info["sub"],
+                    email=id_info["email"],
+                    name=id_info.get("name", ""),
+                )
+            return user
+        except HTTPException:
+            raise

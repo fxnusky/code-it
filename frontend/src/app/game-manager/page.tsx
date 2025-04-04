@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import styles from '../page.module.css';
-import PlayerService from '../../../sevices/player.service';
+import PlayerService from '../../../services/player.service';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
 import { useCallback } from 'react';
 

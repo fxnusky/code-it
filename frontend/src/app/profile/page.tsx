@@ -2,6 +2,8 @@
 import { RequireAuth } from "../../../components/require_auth";
 import styles from '../page.module.css';
 import { useRouter } from 'next/navigation';
+import { connectionService } from '../../../services/ws_connection.service';
+import { useState } from 'react';
 import { useWSConnection } from "../../../contexts/ws_connection_context";
 
 export default function Profile() {
