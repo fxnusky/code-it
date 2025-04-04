@@ -11,36 +11,36 @@ export default function Profile() {
 
   const {token} = useAuth();
 
-      const connect = async () => {
-        try {
-            await connectionService.manager_connect(token);
-            
-        } catch (error) {
-            console.error('Connection failed:', error);
-        }
-      };
-      async function handleStartGame(){
-          try{
-            connect(); 
-            
-            await new Promise((resolve, reject) => {
-                const checkConnection = () => {
-                    if (connectionService.getConnectionState() === "open") {
-                        resolve(true);
-                    } else if (connectionService.getConnectionState() === "closed") {
-                        reject(new Error("Connection failed"));
-                    } else {
-                        setTimeout(checkConnection, 100);
-                    }
-                };
-                checkConnection();
-            });
-            router.push("/game-manager");
-          }
-          catch(e){
-            console.error(e);
-          }
+  const connect = async () => {
+    try {
+        await connectionService.manager_connect(token);
+        
+    } catch (error) {
+        console.error('Connection failed:', error);
+    }
+  };
+  async function handleStartGame(){
+      try{
+        connect(); 
+        
+        await new Promise((resolve, reject) => {
+            const checkConnection = () => {
+                if (connectionService.getConnectionState() === "open") {
+                    resolve(true);
+                } else if (connectionService.getConnectionState() === "closed") {
+                    reject(new Error("Connection failed"));
+                } else {
+                    setTimeout(checkConnection, 100);
+                }
+            };
+            checkConnection();
+        });
+        router.push("/game-manager");
       }
+      catch(e){
+        console.error(e);
+      }
+  }
 
   return (
     <RequireAuth>

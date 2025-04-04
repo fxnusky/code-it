@@ -5,6 +5,7 @@ import PlayerService from '../../../services/player.service';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { GameMessage } from '../../../services/ws_connection.service';
 
 interface Player {
   id: string;
@@ -21,25 +22,25 @@ export default function Manager() {
   const router = useRouter();
 
   
-  const handleMessage = (message: string) => {
+  const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
-    const message_json = JSON.parse(message);
-    if (message_json.action === "room_opened"){
-      setState(message_json.action);
-      setQuestionIds([1, 2, 3, 4]);
+    if (message.action === "room_opened"){
+      setState(message.action);
+      setQuestionIds([1, 2]);
       // set room_code and question ids in order
-    }else if (message_json.action === "player_joined"){
+    }else if (message.action === "player_joined"){
       fetchPlayers();
-    }else if (message_json.action === "question"){
-      setState(message_json.action);
+    }else if (message.action === "question"){
+      setState(message.action);
       // recieve question and set it
-    }else if (message_json.action === "player_submitted"){
+    }else if (message.action === "player_submitted"){
       // set the amount of submissions
-    }else if (message_json.action === "question_results"){
-      setState(message_json.action);
+    }else if (message.action === "question_results"){
+      setState(message.action);
       // recieve question results and set it
-    }else if (message_json.action === "ranking"){
-      setState(message_json.action);
+    }else if (message.action === "ranking"){
+      console.log("state handleRankingMessage", state);
+      setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
       // recieve ranking and set it
     }else{
       console.error("Unknown message from server ", message)
@@ -61,6 +62,7 @@ export default function Manager() {
       // Send question id
       connectionService.sendMessage({"action": "next_question"})
     }else{
+      setState("game_ended");
       connectionService.sendMessage({"action": "end_game"})
     }
   }
@@ -70,6 +72,10 @@ export default function Manager() {
 
   useEffect(() => {
     connectionService.addMessageHandler(handleMessage);
+    const messages = connectionService.popMessages();
+    messages.forEach(message => {
+      handleMessage(message);
+    });
     setRoomCode("123456");
   }, [connectionService]);
 
@@ -103,7 +109,7 @@ export default function Manager() {
         <button className={styles.button} onClick={handleNextQuestion}>Next question</button>
       )}
       {state == "game_ended" &&  (
-        <button className={styles.button} onClick={() => {router.push("/join-game")}}>Close</button>
+        <button className={styles.button} onClick={() => {router.push("/profile")}}>Close</button>
       )}
     </div>
   );

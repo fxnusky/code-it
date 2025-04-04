@@ -10,24 +10,24 @@ logger = logging.getLogger(__name__)
 
 async def handle_manager_message(data: dict, room_code: str, game_connection_service: GameConnectionService):
     logger.info(f"Received manager message: {data}")
-    if data.action == "start_game" or  data.action == "next_question":
+    if data["action"] == "start_game" or  data["action"] == "next_question":
         # Recieve question id
         # Get question content and send it
-        game_connection_service.send_manager_message({"action": "question"}, room_code)
-        game_connection_service.broadcast_players({"action": "question"})
-    elif data.action == "end_question":
+        await game_connection_service.send_manager_message({"action": "question"}, room_code)
+        await game_connection_service.broadcast_players({"action": "question"}, room_code)
+    elif data["action"] == "end_question":
         # Recieve question id
         # Get question results and send it
-        game_connection_service.send_manager_message({"action": "question_results"}, room_code)
-        game_connection_service.broadcast_players({"action": "question_results"})
-    elif data.action == "show_ranking":
+        await game_connection_service.send_manager_message({"action": "question_results"}, room_code)
+        await game_connection_service.broadcast_players({"action": "question_results"}, room_code)
+    elif data["action"] == "show_ranking":
         # Get ranking and send it
-        game_connection_service.send_manager_message({"action": "ranking"}, room_code)
-        game_connection_service.broadcast_players({"action": "ranking"})
-    elif data.action == "end_game":
+        await game_connection_service.send_manager_message({"action": "ranking"}, room_code)
+        await game_connection_service.broadcast_players({"action": "ranking"}, room_code)
+    elif data["action"] == "end_game":
         # Get ranking and send it
-        game_connection_service.send_manager_message({"action": "ranking"}, room_code)
-        game_connection_service.broadcast_players({"action": "game_ended"})
+        await game_connection_service.send_manager_message({"action": "ranking"}, room_code)
+        await game_connection_service.broadcast_players({"action": "game_ended"}, room_code)
 
     else:
         logger.info(f"Unknown message from manager {data}")
@@ -35,9 +35,9 @@ async def handle_manager_message(data: dict, room_code: str, game_connection_ser
 
 async def handle_player_message(data: dict, room_code: str, websocket: WebSocket, game_connection_service: GameConnectionService):
     logger.info(f"Received player message: {data}")
-    if data.action == "submit_question":
+    if data["action"] == "submit_question":
         # submit question and if correct send this message:
-        game_connection_service.send_message({"action": "question_submitted"}, websocket)
-        game_connection_service.send_manager_message({"action": "player_submitted"}, room_code)
+        await game_connection_service.send_message({"action": "question_submitted"}, websocket)
+        await game_connection_service.send_manager_message({"action": "player_submitted"}, room_code)
     else:
         logger.info(f"Unknown message from manager {data}")

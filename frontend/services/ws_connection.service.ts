@@ -1,12 +1,16 @@
 import endpoint from "../endpoints.config";
 
-type MessageHandler = (data: any) => void;
+type MessageHandler = (data: any) => void ;
 type WebSocketState = 'connecting' | 'open' | 'closing' | 'closed';
+export type GameMessage = {
+  action: string
+};
 
 class WsConnectionService {
   private socket: WebSocket | null = null;
-  private messageHandlers: MessageHandler[] = [];
+  private messageHandler: MessageHandler | null = null;
   private connectionState: WebSocketState = 'closed';
+  private messages: GameMessage[] = [];
 
   async player_connect(roomCode: string, nickname: string): Promise<WebSocket> {
     if (this.socket && this.connectionState === 'open') {
@@ -41,8 +45,13 @@ class WsConnectionService {
 
         this.socket.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data);
-            this.messageHandlers.forEach(handler => handler(data));
+            const data = JSON.parse(event.data) as GameMessage;
+            if (this.messageHandler){
+              this.messageHandler(data);  
+            }
+            else{
+              this.messages.push(data);
+            }
           } catch (e) {
             console.error('Error parsing message:', e);
           }
@@ -88,8 +97,13 @@ class WsConnectionService {
 
         this.socket.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data);
-            this.messageHandlers.forEach(handler => handler(data));
+            const data = JSON.parse(event.data) as GameMessage;
+            if (this.messageHandler){
+              this.messageHandler(data);  
+            }
+            else{
+              this.messages.push(data);
+            }
           } catch (e) {
             console.error('Error parsing message:', e);
           }
@@ -103,7 +117,7 @@ class WsConnectionService {
   }
   
   addMessageHandler(handler: MessageHandler): void {
-    this.messageHandlers.push(handler);
+    this.messageHandler = handler;
   }
   
   sendMessage(messageData: {[key: string]: any} ): void {
@@ -122,6 +136,12 @@ class WsConnectionService {
 
   getConnectionState(): string {
     return this.connectionState;
+  }
+
+  popMessages(): GameMessage[] {
+    const messages =  this.messages;
+    this.messages = [];
+    return messages;
   }
 
   private cleanUp(): void {

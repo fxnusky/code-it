@@ -23,7 +23,7 @@ async def websocket_player_endpoint(websocket: WebSocket, room_code: str, nickna
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_player_message(data, room_code, game_connection_service)
+                await handle_player_message(data, room_code, websocket, game_connection_service)
                 
             except WebSocketDisconnect:
                 break
@@ -79,7 +79,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_manager_message(data, room_code, websocket)
+                await handle_manager_message(data, room_code, game_connection_service)
             except WebSocketDisconnect:
                 break
     except Exception as e:

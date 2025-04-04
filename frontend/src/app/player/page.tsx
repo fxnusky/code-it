@@ -3,6 +3,7 @@ import styles from '../page.module.css'
 import { useState, useEffect } from 'react';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
 import { useRouter } from 'next/navigation';
+import { GameMessage } from '../../../services/ws_connection.service';
 
 export default function Profile() {
     //TODO: improve
@@ -14,28 +15,30 @@ export default function Profile() {
 
     useEffect(() => {
         connectionService.addMessageHandler(handleMessage);
-        connectionService.sendMessage({"action": "confirm_player"})
+        const messages = connectionService.popMessages();
+            messages.forEach(message => {
+                handleMessage(message);
+            });
     }, [connectionService]);
 
-    const handleMessage = (message: string) => {
+    const handleMessage = (message: GameMessage) => {
         console.log('Received game message:', message);
-        const message_json = JSON.parse(message);
-        if (message_json.action === "joined"){
+        if (message.action === "joined"){
             setState("room");
-        }else if (message_json.action === "question"){
-            setState(message_json.action);
+        }else if (message.action === "question"){
+            setState(message.action);
     
-        }else if (message_json.action === "question_submitted"){
-            setState(message_json.action);
+        }else if (message.action === "question_submitted"){
+            setState(message.action);
       
-        }else if (message_json.action === "question_results"){
-            setState(message_json.action);
+        }else if (message.action === "question_results"){
+            setState(message.action);
     
-        }else if (message_json.action === "ranking"){
-            setState(message_json.action);
+        }else if (message.action === "ranking"){
+            setState(message.action);
     
-        }else if (message_json.action === "game_ended"){
-            setState(message_json.action);
+        }else if (message.action === "game_ended"){
+            setState(message.action);
     
         }else{
             console.error("Unknown message from server ", message)
@@ -70,7 +73,7 @@ export default function Profile() {
                 <p>Ranking</p>
             )}
             {state == "game_ended" &&  (
-                <button className={styles.button} onClick={() => {router.push("/profile")}}>Close</button>
+                <button className={styles.button} onClick={() => {router.push("/join-room")}}>Close</button>
             )}
         </div>
     );
