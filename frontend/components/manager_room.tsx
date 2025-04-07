@@ -1,23 +1,18 @@
 'use client';
-import { useWSConnection } from '../contexts/ws_connection_context';
 import styles from './room.module.css'; 
 import { Player } from '../src/app/game-manager/[room_code]/page';
 
 type ManagerRoomProps = {
   room_code: string;
   players: Player[];
+  handleStartGame: () => void;
 };
 
 export const ManagerRoom = ({
     room_code,
-    players
+    players,
+    handleStartGame
 }: ManagerRoomProps) => {
-  const connectionService = useWSConnection();
-
-  const handleStartGame = () =>{
-    // Send question id
-    connectionService.sendMessage({"action": "start_game"})
-  }
   
   return (
     <div className={styles.container}>
