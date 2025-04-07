@@ -64,13 +64,13 @@ class WsConnectionService {
     });
   }
 
-  async manager_connect(token: string): Promise<WebSocket> {
+  async manager_connect(token: string, template_id: number): Promise<WebSocket> {
     if (this.socket && this.connectionState === 'open') {
       console.warn('WebSocket already connected');
       return this.socket;
     }
 
-    const wsUrl = `${endpoint.wsURL}/ws/manager?token=${encodeURIComponent(token)}`;
+    const wsUrl = `${endpoint.wsURL}/ws/manager?token=${encodeURIComponent(token)}&template_id=${encodeURIComponent(template_id)}`;
     
     return new Promise((resolve, reject) => {
       try {

@@ -7,7 +7,7 @@ class RoomRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_room(self, room_code: str):
+    def create_room(self, room_code: str, template_id: int):
         try:
             existing_room = self.get_room_by_code(room_code)
             if existing_room:
@@ -15,7 +15,7 @@ class RoomRepository:
                     status_code=status.HTTP_409_CONFLICT,
                     detail=f"A room with '{room_code}' already exists"
                 )
-            room = Room(room_code=room_code)
+            room = Room(room_code=room_code, template_id=template_id)
             self.db.add(room)
             self.db.commit()
             self.db.refresh(room)
