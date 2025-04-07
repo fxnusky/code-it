@@ -93,7 +93,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_manager_message(data, room_code, game_connection_service, db)
+                await handle_manager_message(data, room_code, game_connection_service, db, question_service)
             except WebSocketDisconnect:
                 await game_connection_service.disconnect_manager(room_code)
                 await game_connection_service.broadcast_players({"action": "manager_disconnected"}, room_code)

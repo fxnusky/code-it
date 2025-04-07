@@ -1,5 +1,6 @@
 from fastapi import WebSocket
 from ..services.game_connection_service import GameConnectionService
+from ..services.question_service import QuestionService
 import logging
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -11,14 +12,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def handle_manager_message(data: dict, room_code: str, game_connection_service: GameConnectionService, db: Session):
+async def handle_manager_message(data: dict, room_code: str, game_connection_service: GameConnectionService, db: Session, question_service: QuestionService):
     logger.info(f"Received manager message: {data}")
     if data["action"] == "start_game" or  data["action"] == "next_question":
-        # Recieve question id
-        # Get question content and send it
+        question_id = data["question_id"]
+        question = question_service.get_question_by_id(question_id)
         await game_connection_service.set_state("question", room_code, db)
-        await game_connection_service.send_manager_message({"action": "question"}, room_code)
-        await game_connection_service.broadcast_players({"action": "question"}, room_code)
+        await game_connection_service.send_manager_message({"action": "question", "question": question}, room_code)
+        await game_connection_service.broadcast_players({"action": "question", "question": question}, room_code)
     elif data["action"] == "end_question":
         # Recieve question id
         # Get question results and send it
