@@ -6,6 +6,9 @@ from .message_handlers import handle_manager_message, handle_player_message
 from ..database import get_db
 from ..services.auth_service import AuthService
 from ..repositories.user_repository import UserRepository
+from ..services.question_service import QuestionService
+from ..repositories.question_repository import QuestionRepository
+
 
 
 router = APIRouter()
@@ -70,7 +73,12 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         room_code = game_connection_service.get_new_room_code()
         auth_service.update_active_room(user.google_id, room_code)
         game_connection_service.create_room(room_code, websocket, template_id, db)
-        await game_connection_service.send_message({"action": "room_opened", "room_code": room_code}, websocket)
+
+        question_repository = QuestionRepository(db)
+        question_service = QuestionService(question_repository)
+        question_ids = question_service.get_sorted_question_ids(template_id)
+        
+        await game_connection_service.send_message({"action": "room_opened", "room_code": room_code, "question_ids": question_ids}, websocket)
     except Exception as e:
         await websocket.close(code=4500, reason=str(e))
         return
