@@ -1,30 +1,51 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from '../page.module.css';
-import PlayerService from '../../../services/player.service';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
-import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GameMessage } from '../../../services/ws_connection.service';
+import { ManagerRoom } from '../../../components/manager_room';
+import PlayerService from '../../../services/player.service';
 
-interface Player {
+export interface Player {
   id: string;
   nickname: string;
 }
 
 export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [roomCode, setRoomCode] = useState('123456');
+  const [roomCode, setRoomCode] = useState('');
   const [state, setState] = useState('');
   const [questionIds, setQuestionIds] = useState<number[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const connectionService = useWSConnection();
   const router = useRouter();
+  const roomCodeRef = useRef(roomCode);
+
+  // Keep the ref updated
+  useEffect(() => {
+    roomCodeRef.current = roomCode;
+  }, [roomCode]);
+
+  const fetchPlayers = useCallback(async () => {
+    const currentRoomCode = roomCodeRef.current;
+    if (!currentRoomCode) {
+      console.error("No room code available");
+      return;
+    }
+    const response = await PlayerService.getPlayers({ room_code: currentRoomCode });
+    if (response && response.data) {
+      setPlayers(response.data);
+    }
+  }, []); 
 
   
   const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
     if (message.action === "room_opened"){
+      if (message.room_code){
+        setRoomCode(message.room_code);
+      }
       setState(message.action);
       setQuestionIds([1, 2]);
       // set room_code and question ids in order
@@ -48,10 +69,6 @@ export default function Manager() {
     
   };
 
-  const handleStartGame = () =>{
-    // Send question id
-    connectionService.sendMessage({"action": "start_game"})
-  }
   const handleEndQuestion = () =>{
     // Send question id
     connectionService.sendMessage({"action": "end_question"})
@@ -76,28 +93,12 @@ export default function Manager() {
     messages.forEach(message => {
       handleMessage(message);
     });
-    setRoomCode("123456");
   }, [connectionService]);
-
-  const fetchPlayers = useCallback(async () => {
-    const response = await PlayerService.getPlayers({ room_code: roomCode });
-    if (response && response.data) {
-      setPlayers(response.data);
-    }
-  }, [roomCode]);
 
   return (
     <div className={styles.container}>
       {state == "room_opened" &&  (
-        <div>
-          <h2>Players: ({players.length})</h2>
-          <ul>
-            {players.map(player => (
-                <li key={player.id}>{player.nickname}</li>
-            ))}
-          </ul>
-          <button className={styles.button} onClick={handleStartGame}>Start Game</button>
-        </div>
+        <ManagerRoom room_code={roomCode} players={players}></ManagerRoom>
       )}
       {state == "question" &&  (
         <button className={styles.button} onClick={handleEndQuestion}>End questions and show results</button>

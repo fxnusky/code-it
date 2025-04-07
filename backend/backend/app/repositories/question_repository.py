@@ -21,4 +21,18 @@ class QuestionRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Unexpected error: {str(e)}"
             )
+    def get_question_ids_by_template_id(self, template_id: int):
+        try:
+            return self.db.query(Question.id, Question.order_key).filter(Question.template_id == template_id).order_by(Question.order_key.asc()).all()
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error while retrieving question"
+            )
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
+            )
     

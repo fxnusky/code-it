@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
 import { useRouter } from 'next/navigation';
 import { GameMessage } from '../../../services/ws_connection.service';
+import { PlayerRoom } from '../../../components/player_room';
 
 export default function Profile() {
     //TODO: improve
@@ -53,12 +54,7 @@ export default function Profile() {
     return (
         <div className={styles.container}>
             {state == "room" &&  (
-                <div>
-                    <div className={styles.card}>
-                        <p className={styles.title}>{nickname}</p>
-                    </div>
-                    <p className={styles.createGameText}>You joined the room {roomCode}.</p>
-                </div>
+                <PlayerRoom room_code={roomCode} nickname={nickname}></PlayerRoom>
             )}
             {state == "question" &&  (
                 <button className={styles.button} onClick={handleSubmitQuestion}>Send question</button>
