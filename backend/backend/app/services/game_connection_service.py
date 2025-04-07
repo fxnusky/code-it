@@ -16,7 +16,7 @@ class GameConnectionService:
             room_repository = RoomRepository(db)
             game_template_repository = GameTemplateRepository(db)
             template = game_template_repository.get_template_by_id(template_id)
-            room = room_repository.create_room(room_code)
+            room = room_repository.create_room(room_code, template_id)
             if template and room and room_code not in self.rooms:
                 self.rooms[room_code] = {"manager": manager, "players": set()}
         except HTTPException:
