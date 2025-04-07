@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from '../page.module.css';
 import { useWSConnection } from '../../../contexts/ws_connection_context';
-import { connectionService } from '../../../services/ws_connection.service';
 
 export default function JoinGame() {
   const router = useRouter();
