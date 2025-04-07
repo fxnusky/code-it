@@ -3,7 +3,8 @@ import endpoint from "../endpoints.config";
 type MessageHandler = (data: any) => void ;
 type WebSocketState = 'connecting' | 'open' | 'closing' | 'closed';
 export type GameMessage = {
-  action: string
+  action: string,
+  room_code?: string
 };
 
 class WsConnectionService {

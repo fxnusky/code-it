@@ -3,6 +3,7 @@ import { ApiResponse } from "./api_response";
 
 const PlayerService = {
     getPlayers: async ({ room_code }: { room_code: string }): Promise<ApiResponse | null> => {
+      console.log("room_Code", room_code);
         try {
           if (!room_code || typeof room_code !== "string") {
             throw new Error("Invalid room code");
