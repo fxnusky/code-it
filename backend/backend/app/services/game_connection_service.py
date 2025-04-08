@@ -10,15 +10,15 @@ from ..repositories.game_template_repository import GameTemplateRepository
 class GameConnectionService:
     def __init__(self):
         self.rooms: Dict[str, Dict[str, Optional[WebSocket] | Set[WebSocket]]] = {}
+        self.status: str = "room_opened"
+        self.current_question_id: str = None 
     
-    def create_room(self, room_code: str, manager: WebSocket, template_id: int,  db: Session):
+    def set_room_manager(self, room_code: str, manager: WebSocket):
         try: 
-            room_repository = RoomRepository(db)
-            game_template_repository = GameTemplateRepository(db)
-            template = game_template_repository.get_template_by_id(template_id)
-            room = room_repository.create_room(room_code, template_id)
-            if template and room and room_code not in self.rooms:
+            if room_code not in self.rooms:
                 self.rooms[room_code] = {"manager": manager, "players": set()}
+            else:
+                self.rooms[room_code]["manager"] = manager
         except HTTPException:
             raise
     
@@ -30,13 +30,6 @@ class GameConnectionService:
                 del self.rooms[room_code]
         except HTTPException:
             raise
-        
-    
-    def get_new_room_code(self):
-        room_code = f"{random.randint(0, 999999):06d}"
-        while room_code in self.rooms:
-            room_code = f"{random.randint(0, 999999):06d}"
-        return room_code
 
     async def connect_player(self, websocket: WebSocket, room_code: str, nickname: str, db: Session):
         await websocket.accept()
