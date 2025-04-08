@@ -1,17 +1,21 @@
+import { Player } from "@/app/game-manager/[room_code]/page";
 import endpoint from "../endpoints.config";
 
 type MessageHandler = (data: any) => void ;
-type WebSocketState = 'connecting' | 'open' | 'closing' | 'closed';
+type WebSocketState = 'connecting' | 'open' | 'closing' | 'closed' | 'start';
 export type GameMessage = {
   action: string,
-  room_code?: string
+  room_code?: string,
+  status?: string,
+  question_ids?: number[],
+  players?: Player[],
+  current_question_id?: number
 };
 
 class WsConnectionService {
   private socket: WebSocket | null = null;
   private messageHandler: MessageHandler | null = null;
-  private connectionState: WebSocketState = 'closed';
-  private messages: GameMessage[] = [];
+  private connectionState: WebSocketState = 'start';
 
   async player_connect(roomCode: string, nickname: string): Promise<WebSocket> {
     if (this.socket && this.connectionState === 'open') {
@@ -50,9 +54,6 @@ class WsConnectionService {
             if (this.messageHandler){
               this.messageHandler(data);  
             }
-            else{
-              this.messages.push(data);
-            }
           } catch (e) {
             console.error('Error parsing message:', e);
           }
@@ -65,13 +66,13 @@ class WsConnectionService {
     });
   }
 
-  async manager_connect(token: string, template_id: number): Promise<WebSocket> {
+  async manager_connect(token: string, room_code: string): Promise<WebSocket> {
     if (this.socket && this.connectionState === 'open') {
       console.warn('WebSocket already connected');
       return this.socket;
     }
 
-    const wsUrl = `${endpoint.wsURL}/ws/manager?token=${encodeURIComponent(token)}&template_id=${encodeURIComponent(template_id)}`;
+    const wsUrl = `${endpoint.wsURL}/ws/manager?token=${encodeURIComponent(token)}&room_code=${encodeURIComponent(room_code)}`;
     
     return new Promise((resolve, reject) => {
       try {
@@ -101,9 +102,6 @@ class WsConnectionService {
             const data = JSON.parse(event.data) as GameMessage;
             if (this.messageHandler){
               this.messageHandler(data);  
-            }
-            else{
-              this.messages.push(data);
             }
           } catch (e) {
             console.error('Error parsing message:', e);
@@ -137,12 +135,6 @@ class WsConnectionService {
 
   getConnectionState(): string {
     return this.connectionState;
-  }
-
-  popMessages(): GameMessage[] {
-    const messages =  this.messages;
-    this.messages = [];
-    return messages;
   }
 
   private cleanUp(): void {

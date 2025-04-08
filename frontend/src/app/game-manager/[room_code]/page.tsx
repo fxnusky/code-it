@@ -1,11 +1,13 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import styles from '../page.module.css';
-import { useWSConnection } from '../../../contexts/ws_connection_context';
+import styles from '../../page.module.css';
+import { useWSConnection } from '../../../../contexts/ws_connection_context';
 import { useRouter } from 'next/navigation';
-import { GameMessage } from '../../../services/ws_connection.service';
-import { ManagerRoom } from '../../../components/manager_room';
-import PlayerService from '../../../services/player.service';
+import { GameMessage } from '../../../../services/ws_connection.service';
+import { ManagerRoom } from '../../../../components/manager_room';
+import PlayerService from '../../../../services/player.service';
+import { useParams } from 'next/navigation';
+import { useAuth } from '../../../../contexts/auth_context';
 
 export interface Player {
   id: string;
@@ -21,8 +23,9 @@ export default function Manager() {
   const connectionService = useWSConnection();
   const router = useRouter();
   const roomCodeRef = useRef(roomCode);
+  const { room_code }: {room_code: string} = useParams(); 
+  const { token } = useAuth();
 
-  // Keep the ref updated
   useEffect(() => {
     roomCodeRef.current = roomCode;
   }, [roomCode]);
@@ -42,14 +45,7 @@ export default function Manager() {
   
   const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
-    if (message.action === "room_opened"){
-      if (message.room_code){
-        setRoomCode(message.room_code);
-      }
-      setState(message.action);
-      setQuestionIds([1, 2]);
-      // set room_code and question ids in order
-    }else if (message.action === "player_joined"){
+    if (message.action === "player_joined"){
       fetchPlayers();
     }else if (message.action === "question"){
       setState(message.action);
@@ -63,6 +59,19 @@ export default function Manager() {
       console.log("state handleRankingMessage", state);
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
       // recieve ranking and set it
+    }else if (message.action === "status"){
+      if(message.status){
+        setState(message.status)
+      }
+      if(message.question_ids){
+        setQuestionIds(message.question_ids)
+      }
+      if(message.players){
+        setPlayers(message.players)
+      }
+      if(message.current_question_id && message.question_ids){
+        setQuestionIndex(message.question_ids.indexOf(message.current_question_id))
+      }
     }else{
       console.error("Unknown message from server ", message)
     }
@@ -88,12 +97,20 @@ export default function Manager() {
   }
 
   useEffect(() => {
-    connectionService.addMessageHandler(handleMessage);
-    const messages = connectionService.popMessages();
-    messages.forEach(message => {
-      handleMessage(message);
-    });
-  }, [connectionService]);
+    const connectToRoom = async () => {
+      try {
+        connectionService.addMessageHandler(handleMessage);
+        await connectionService.manager_connect(token, room_code); 
+
+      } catch (error) {
+        console.error('Connection error:', error);
+      }
+    };
+
+    if (token && room_code) {
+      connectToRoom();
+    }
+  }, [connectionService, token, room_code]);
 
   return (
     <div className={styles.container}>
