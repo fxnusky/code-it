@@ -11,3 +11,12 @@ class PlayerService:
             return [{"id": player.id, "nickname": player.nickname} for player in players]
         except HTTPException:
             raise
+    
+    def verify_token(self, token: str, room_code:str):
+        try:
+            player = self.player_repository.get_player_by_token(token)
+            if player and player.room_code == room_code:
+                return True
+            return False
+        except HTTPException:
+            raise

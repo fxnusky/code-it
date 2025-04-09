@@ -17,4 +17,7 @@ class RoomService:
     def create_room(self, room_code, template_id):
         return self.room_repository.create_room(room_code, template_id)
 
-
+    def get_room_state(self, room_code):
+        return self.room_repository.get_room_by_code(room_code).game_state
+        
+         
