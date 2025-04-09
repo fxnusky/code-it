@@ -6,10 +6,11 @@ type WebSocketState = 'connecting' | 'open' | 'closing' | 'closed' | 'start';
 export type GameMessage = {
   action: string,
   room_code?: string,
-  status?: string,
+  state?: string,
   question_ids?: number[],
   players?: Player[],
-  current_question_id?: number
+  current_question_id?: number,
+  nickname?: string
 };
 
 class WsConnectionService {
@@ -17,14 +18,13 @@ class WsConnectionService {
   private messageHandler: MessageHandler | null = null;
   private connectionState: WebSocketState = 'start';
 
-  async player_connect(roomCode: string, nickname: string): Promise<WebSocket> {
+  async player_connect(roomCode: string, nickname: string, token: string): Promise<WebSocket> {
     if (this.socket && this.connectionState === 'open') {
       console.warn('WebSocket already connected');
       return this.socket;
     }
 
-    const wsUrl = `${endpoint.wsURL}/ws/player/${encodeURIComponent(roomCode)}?nickname=${encodeURIComponent(nickname)}`;
-    
+    const wsUrl = `${endpoint.wsURL}/ws/player?room_code=${encodeURIComponent(roomCode)}&nickname=${encodeURIComponent(nickname)}&token=${encodeURIComponent(token)}`;
     return new Promise((resolve, reject) => {
       try {
         this.socket = new WebSocket(wsUrl);

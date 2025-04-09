@@ -16,27 +16,17 @@ export interface Player {
 
 export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [roomCode, setRoomCode] = useState('');
   const [state, setState] = useState('');
   const [questionIds, setQuestionIds] = useState<number[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const connectionService = useWSConnection();
   const router = useRouter();
-  const roomCodeRef = useRef(roomCode);
   const { room_code }: {room_code: string} = useParams(); 
   const { token } = useAuth();
 
-  useEffect(() => {
-    roomCodeRef.current = roomCode;
-  }, [roomCode]);
 
   const fetchPlayers = useCallback(async () => {
-    const currentRoomCode = roomCodeRef.current;
-    if (!currentRoomCode) {
-      console.error("No room code available");
-      return;
-    }
-    const response = await PlayerService.getPlayers({ room_code: currentRoomCode });
+    const response = await PlayerService.getPlayers({ room_code: room_code });
     if (response && response.data) {
       setPlayers(response.data);
     }
@@ -56,12 +46,11 @@ export default function Manager() {
       setState(message.action);
       // recieve question results and set it
     }else if (message.action === "ranking"){
-      console.log("state handleRankingMessage", state);
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
       // recieve ranking and set it
     }else if (message.action === "status"){
-      if(message.status){
-        setState(message.status)
+      if(message.state){
+        setState(message.state)
       }
       if(message.question_ids){
         setQuestionIds(message.question_ids)
@@ -115,7 +104,7 @@ export default function Manager() {
   return (
     <div className={styles.container}>
       {state == "room_opened" &&  (
-        <ManagerRoom room_code={roomCode} players={players}></ManagerRoom>
+        <ManagerRoom room_code={room_code} players={players}></ManagerRoom>
       )}
       {state == "question" &&  (
         <button className={styles.button} onClick={handleEndQuestion}>End questions and show results</button>
