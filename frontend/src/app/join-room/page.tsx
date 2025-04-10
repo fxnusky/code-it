@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from '../page.module.css';
-import { useWSConnection } from '../../../contexts/ws_connection_context';
+import PlayerService from '../../../services/player.service';
 
 export default function JoinGame() {
   const router = useRouter();
@@ -13,8 +13,6 @@ export default function JoinGame() {
     roomCode: '',
     nickname: ''
   });
-  const connectionService = useWSConnection();
-
 
   function handleJoinRoom() {
     let isValid = true;
@@ -27,7 +25,7 @@ export default function JoinGame() {
       newErrors.roomCode = 'Room code is required';
       isValid = false;
     }else if (!/^\d{6}$/.test(roomCode)) {
-      newErrors.nickname = 'Room code must have 6 digits';
+      newErrors.roomCode = 'Room code must have 6 digits';
       isValid = false;
     }
 
@@ -42,21 +40,33 @@ export default function JoinGame() {
     setErrors(newErrors);
 
     if (isValid) {
-      connect({nickname, roomCode})
-      router.push(`/player?room=${encodeURIComponent(roomCode)}&nickname=${encodeURIComponent(nickname)}`);
+      const connect = async () => {
+        try {
+          let response = await PlayerService.createPlayer({nickname, roomCode})
+          console.log(response);
+          if (response?.status == "success"){
+            router.push(`/player/${response.data["token"]}`);
+          }else {
+            const apiErrors = {
+              roomCode: '',
+              nickname: ''
+            };
+            if (response?.status_code === 405 || response?.status_code === 403) {
+              apiErrors.roomCode = response?.detail || 'does not exist';
+            }
+            
+            if (response?.status_code === 409) {
+              apiErrors.nickname = "This nickname is already taken in this room";
+            }
+            setErrors(apiErrors);
+          }
+        } catch (error) {
+            console.error('Connection failed:', error);
+        }
+      }
+      connect();
     }
   }
-  const connect = async ({nickname, roomCode}: {
-    nickname: string;
-    roomCode: string;
-  }) => {
-    try {
-        await connectionService.player_connect(roomCode, nickname);
-        
-    } catch (error) {
-        console.error('Connection failed:', error);
-    }
-  };
 
   return (
     <div className={styles.container}>

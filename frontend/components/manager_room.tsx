@@ -1,7 +1,7 @@
 'use client';
 import { useWSConnection } from '../contexts/ws_connection_context';
 import styles from './room.module.css'; 
-import { Player } from '../src/app/game-manager/page';
+import { Player } from '../src/app/game-manager/[room_code]/page';
 
 type ManagerRoomProps = {
   room_code: string;

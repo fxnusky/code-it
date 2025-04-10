@@ -13,13 +13,15 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS players (
     id SERIAL PRIMARY KEY,
     nickname VARCHAR(100) NOT NULL,
-    room_code VARCHAR(100) NOT NULL
+    room_code VARCHAR(100) NOT NULL,
+    token VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS rooms (
     id SERIAL PRIMARY KEY,
     room_code VARCHAR(100) NOT NULL,
-    template_id INTEGER REFERENCES game_templates(id) ON DELETE CASCADE
+    template_id INTEGER REFERENCES game_templates(id) ON DELETE CASCADE,
+    game_state VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS questions (

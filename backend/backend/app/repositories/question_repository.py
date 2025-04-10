@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models import Question
+from app.models import Question, Room
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
 
@@ -21,13 +21,17 @@ class QuestionRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Unexpected error: {str(e)}"
             )
-    def get_question_ids_by_template_id(self, template_id: int):
+    def get_question_ids_by_room_code(self, room_code: str):
         try:
-            return self.db.query(Question.id, Question.order_key).filter(Question.template_id == template_id).order_by(Question.order_key.asc()).all()
+            return self.db.query(Question.id, Question.order_key)\
+                   .join(Room, Question.template_id == Room.template_id)\
+                   .filter(Room.room_code == room_code)\
+                   .order_by(Question.order_key)\
+                   .all()
         except SQLAlchemyError as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database error while retrieving question"
+                detail="Database error while retrieving question ids"
             )
         except Exception as e:
             self.db.rollback()

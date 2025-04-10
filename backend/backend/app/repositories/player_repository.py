@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app.models import Player
 from fastapi import HTTPException, status
-
+import uuid
 class PlayerRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -15,9 +15,9 @@ class PlayerRepository:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Player with nickname '{nickname}' already exists in room '{room_code}'"
             )
-
+        token = uuid.uuid4()
         try:
-            player = Player(room_code=room_code, nickname=nickname)
+            player = Player(room_code=room_code, nickname=nickname, token=token)
             self.db.add(player)
             self.db.commit()
             self.db.refresh(player)
@@ -75,4 +75,9 @@ class PlayerRepository:
         return self.db.query(Player).filter(
             Player.nickname == nickname,
             Player.room_code == room_code
+        ).first()
+    
+    def get_player_by_token(self, token: str):
+        return self.db.query(Player).filter(
+            Player.token == token
         ).first()

@@ -1,6 +1,9 @@
 from fastapi import WebSocket
 from ..services.game_connection_service import GameConnectionService
 import logging
+from sqlalchemy.orm import Session
+from ..database import get_db
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -8,24 +11,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def handle_manager_message(data: dict, room_code: str, game_connection_service: GameConnectionService):
+async def handle_manager_message(data: dict, room_code: str, game_connection_service: GameConnectionService, db: Session):
     logger.info(f"Received manager message: {data}")
     if data["action"] == "start_game" or  data["action"] == "next_question":
         # Recieve question id
         # Get question content and send it
+        await game_connection_service.set_state("question", room_code, db)
         await game_connection_service.send_manager_message({"action": "question"}, room_code)
         await game_connection_service.broadcast_players({"action": "question"}, room_code)
     elif data["action"] == "end_question":
         # Recieve question id
         # Get question results and send it
+        await game_connection_service.set_state("question_results", room_code, db)
         await game_connection_service.send_manager_message({"action": "question_results"}, room_code)
         await game_connection_service.broadcast_players({"action": "question_results"}, room_code)
     elif data["action"] == "show_ranking":
         # Get ranking and send it
+        await game_connection_service.set_state("ranking", room_code, db)
         await game_connection_service.send_manager_message({"action": "ranking"}, room_code)
         await game_connection_service.broadcast_players({"action": "ranking"}, room_code)
     elif data["action"] == "end_game":
         # Get ranking and send it
+        await game_connection_service.set_state("game_ended", room_code, db)
         await game_connection_service.send_manager_message({"action": "ranking"}, room_code)
         await game_connection_service.broadcast_players({"action": "game_ended"}, room_code)
 

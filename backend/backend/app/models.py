@@ -16,6 +16,7 @@ class Player(Base):
     id = Column(Integer, primary_key=True, index=True)
     nickname = Column(String)
     room_code = Column(String)
+    token = Column(String)
 
 class Room(Base):
     __tablename__ = "rooms"
@@ -23,6 +24,7 @@ class Room(Base):
     id = Column(Integer, primary_key=True, index=True)
     room_code = Column(String)
     template_id = Column(Integer, ForeignKey('game_templates.id', ondelete="CASCADE"), nullable=False)
+    game_state = Column(String)
 
 class GameTemplate(Base):
     __tablename__ = "game_templates"
