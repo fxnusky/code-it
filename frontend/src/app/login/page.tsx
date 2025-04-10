@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import styles from '../page.module.css';
 import { useAuth } from '../../../contexts/auth_context';
 import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button"
 
 export default function LoginPage() { 
   const [redirectTo, setRedirectTo] = useState<string>("/join-room");
@@ -29,20 +30,19 @@ export default function LoginPage() {
                 You&apos;re already logged in with the Google account: <strong>{email}</strong>
               </p>
               <div className={styles.buttonContainer}>
-                <button 
+                <Button 
                   onClick={logout}
-                  className={styles.primaryButton}
                 >
                   Log out to switch accounts
-                </button>
+                </Button>
               </div>
               <div className={styles.buttonContainer}>
-                <button 
+                <Button 
+                  variant="secondary"
                   onClick={() => router.push("/profile")}
-                  className={styles.secondaryButton}
                 >
                   Back to the application
-                </button>
+                </Button>
               </div>
             </>
           ) : (

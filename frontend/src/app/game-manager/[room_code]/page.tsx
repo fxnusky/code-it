@@ -8,6 +8,9 @@ import { ManagerRoom } from '../../../../components/manager_room';
 import PlayerService from '../../../../services/player.service';
 import { useParams } from 'next/navigation';
 import { useAuth } from '../../../../contexts/auth_context';
+import { Question } from '../../../../services/ws_connection.service';
+import { ManagerQuestion } from '../../../../components/manager_question';
+import { Button } from "@/components/ui/button"
 
 export interface Player {
   id: string;
@@ -18,12 +21,12 @@ export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [state, setState] = useState('');
   const [questionIds, setQuestionIds] = useState<number[]>([]);
+  const [question, setQuestion] = useState<Question>();
   const [questionIndex, setQuestionIndex] = useState(0);
   const connectionService = useWSConnection();
   const router = useRouter();
   const { room_code }: {room_code: string} = useParams(); 
   const { token } = useAuth();
-
 
   const fetchPlayers = useCallback(async () => {
     const response = await PlayerService.getPlayers({ room_code: room_code });
@@ -38,8 +41,10 @@ export default function Manager() {
     if (message.action === "player_joined" || message.action === "player_disconnected"){
       fetchPlayers();
     }else if (message.action === "question"){
+      if (message.question){
+        setQuestion(message.question);
+      }
       setState(message.action);
-      // recieve question and set it
     }else if (message.action === "player_submitted"){
       // set the amount of submissions
     }else if (message.action === "question_results"){
@@ -100,23 +105,26 @@ export default function Manager() {
       connectToRoom();
     }
   }, [connectionService, token, room_code]);
-
+  
+  const handleStartGame = () =>{
+    connectionService.sendMessage({"action": "start_game", "question_id": questionIds[questionIndex]})
+  }
   return (
     <div className={styles.container}>
       {state == "room_opened" &&  (
-        <ManagerRoom room_code={room_code} players={players}></ManagerRoom>
+        <ManagerRoom room_code={room_code} players={players} handleStartGame={handleStartGame}></ManagerRoom>
       )}
-      {state == "question" &&  (
-        <button className={styles.button} onClick={handleEndQuestion}>End questions and show results</button>
+      {state == "question" && question !== undefined && (
+        <ManagerQuestion question={question} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
       {state == "question_results" &&  (
-        <button className={styles.button} onClick={handleShowRanking}>Show ranking</button>
+        <Button onClick={handleShowRanking}>Show ranking</Button>
       )}
       {state == "ranking" &&  (
-        <button className={styles.button} onClick={handleNextQuestion}>Next question</button>
+        <Button onClick={handleNextQuestion}>Next question</Button>
       )}
       {state == "game_ended" &&  (
-        <button className={styles.button} onClick={() => {router.push("/profile")}}>Close</button>
+        <Button onClick={() => {router.push("/profile")}}>Close</Button>
       )}
     </div>
   );

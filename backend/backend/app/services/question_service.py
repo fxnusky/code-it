@@ -12,3 +12,14 @@ class QuestionService:
             return sorted_question_ids
         except HTTPException:
             raise
+    
+    def get_question_by_id(self, question_id: int):
+        try:
+            question = self.question_repository.get_question_by_id(question_id)
+            return {
+                "id": question.id,
+                "description": question.description,
+                "time_limit": question.time_limit
+            }
+        except HTTPException:
+            raise
