@@ -35,7 +35,7 @@ export default function Manager() {
   
   const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
-    if (message.action === "player_joined" || "player_disconnected"){
+    if (message.action === "player_joined" || message.action === "player_disconnected"){
       fetchPlayers();
     }else if (message.action === "question"){
       setState(message.action);

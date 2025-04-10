@@ -36,7 +36,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 detail="This player is not authorized to connect to this room."
             )
         await game_connection_service.connect_player(websocket, room_code)
-        await game_connection_service.send_message({"action": "status", "state": "joined", "room_code": room_code, "nickname": nickname}, websocket)
+        await game_connection_service.send_message({"action": "status", "state": "joined", "room_code": room_code, "nickname": nickname, "manager_connected": game_connection_service.rooms[room_code]["manager"] != None}, websocket)
         await game_connection_service.send_manager_message({"action": "player_joined"}, room_code)
        
         while True:
@@ -45,7 +45,8 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 await handle_player_message(data, room_code, websocket, game_connection_service)
                 
             except WebSocketDisconnect:
-                break
+                await game_connection_service.disconnect_player(websocket, room_code)
+                await game_connection_service.send_manager_message({"action": "player_disconnected"})
 
     except WebSocketDisconnect:
         await game_connection_service.disconnect_player(websocket, room_code)
@@ -84,6 +85,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
             "players": players, 
             "current_question_id": game_connection_service.current_question_id
             }, websocket)
+        await game_connection_service.broadcast_players({"action": "manager_connected"}, room_code)
     except Exception as e:
         logger.error(str(e))
         
@@ -93,6 +95,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
                 data = await websocket.receive_json()
                 await handle_manager_message(data, room_code, game_connection_service, db)
             except WebSocketDisconnect:
-                break
+                await game_connection_service.disconnect_manager(room_code)
+                await game_connection_service.broadcast_players({"action": "manager_disconnected"}, room_code)
     except Exception as e:
         logger.error(str(e))

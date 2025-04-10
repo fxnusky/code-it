@@ -35,6 +35,11 @@ class GameConnectionService:
             self.rooms[room_code]["players"].discard(websocket)
         await websocket.close()
 
+    async def disconnect_manager(self, room_code: str):
+        if room_code in self.rooms:
+            await self.rooms[room_code]["manager"].close()
+            self.rooms[room_code]["manager"] = None
+
     async def send_message(self, message: dict, websocket: WebSocket):
         await websocket.send_json(message)
     

@@ -13,6 +13,7 @@ export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
     const [nickname, setNickname] = useState("");
     const [state, setState] = useState('')
+    const [isManagerConnected, setIsManagerConnected] = useState(true);
     const connectionService = useWSConnection();
     const router = useRouter();
     const { token }: {token: string} = useParams(); 
@@ -50,6 +51,9 @@ export default function Profile() {
             if (message.room_code){
                 setRoomCode(message.room_code);
             }
+            if (message.manager_connected){
+                setIsManagerConnected(message.manager_connected);
+            }
         }else if (message.action === "question"){
             setState(message.action);
     
@@ -64,7 +68,10 @@ export default function Profile() {
     
         }else if (message.action === "game_ended"){
             setState(message.action);
-    
+        }else if (message.action === "manager_disconnected"){
+            setIsManagerConnected(false);
+        }else if (message.action === "manager_connected"){
+            setIsManagerConnected(true);
         }else{
             console.error("Unknown message from server ", message)
         }
@@ -77,6 +84,9 @@ export default function Profile() {
 
     return (
         <div className={styles.container}>
+            {!isManagerConnected &&(
+                <p className={styles.errorText}>The room manager has disconnected.</p>
+            )}
             {state == "joined" &&  (
                 <PlayerRoom room_code={roomCode} nickname={nickname}></PlayerRoom>
             )}
