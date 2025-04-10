@@ -8,12 +8,14 @@ import { PlayerRoom } from '../../../../components/player_room';
 import { useParams } from 'next/navigation';
 import PlayerService from '../../../../services/player.service';
 import { ApiResponse } from '../../../../services/api_response';
+import { Question } from '../../../../services/ws_connection.service';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
     const [nickname, setNickname] = useState("");
     const [state, setState] = useState('')
     const [isManagerConnected, setIsManagerConnected] = useState(true);
+    const [question, setQuestion] = useState<Question>();
     const connectionService = useWSConnection();
     const router = useRouter();
     const { token }: {token: string} = useParams(); 
@@ -55,8 +57,10 @@ export default function Profile() {
                 setIsManagerConnected(message.manager_connected);
             }
         }else if (message.action === "question"){
+            if (message.question){
+                setQuestion(message.question);
+            }
             setState(message.action);
-    
         }else if (message.action === "question_submitted"){
             setState(message.action);
       

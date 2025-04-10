@@ -9,6 +9,7 @@ import PlayerService from '../../../../services/player.service';
 import { useParams } from 'next/navigation';
 import { useAuth } from '../../../../contexts/auth_context';
 import { Question } from '../../../services/ws_connection.service';
+import { ManagerQuestion } from '../../../components/manager_question';
 
 export interface Player {
   id: string;
@@ -116,8 +117,8 @@ export default function Manager() {
       {state == "room_opened" &&  (
         <ManagerRoom room_code={room_code} players={players} handleStartGame={handleStartGame}></ManagerRoom>
       )}
-      {state == "question" &&  (
-        <button className={styles.button} onClick={handleEndQuestion}>End questions and show results</button>
+      {state == "question" && question !== undefined && (
+        <ManagerQuestion question={question} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
       {state == "question_results" &&  (
         <button className={styles.button} onClick={handleShowRanking}>Show ranking</button>
