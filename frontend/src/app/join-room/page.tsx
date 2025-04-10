@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from '../page.module.css';
 import PlayerService from '../../../services/player.service';
+import { Button } from "@/components/ui/button"
 
 export default function JoinGame() {
   const router = useRouter();
@@ -109,24 +110,23 @@ export default function JoinGame() {
             )}
           </div>
 
-          <button 
+          <Button 
             onClick={handleJoinRoom}
-            className={styles.primaryButton}
             style={{ width: '100%' }}
           >
             Join Room
-          </button>
+          </Button>
         </div>
       </div>   
       <div className={styles.card}>
         <div className={styles.cardContent}>
           <p className={styles.createGameText}>Want to create your own game?</p>
-          <button 
+          <Button 
             onClick={() => router.push("/profile")}
-            className={styles.secondaryButton}
+            variant="secondary"
           >
             Enter the application
-          </button>
+          </Button>
         </div>
       </div>
     </div>

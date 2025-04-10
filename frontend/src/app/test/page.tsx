@@ -1,6 +1,6 @@
 'use client';
 import styles from '../page.module.css'
-import { ManagerQuestion } from '../../../components/manager_question';
+import { PlayerQuestion } from '../../../components/player_question';
 
 export default function Test() {
     let question = {
@@ -13,7 +13,7 @@ export default function Test() {
     }
     return(
         <div className={styles.container}>
-            <ManagerQuestion question={question} num_players={5} num_questions={2} question_index={1} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
+            <PlayerQuestion question={question}num_questions={2} question_index={1}></PlayerQuestion>
         </div>
     )
 }

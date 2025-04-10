@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from "../../../contexts/auth_context";
 import RoomService from "../../../services/room.service";
 import { ApiResponse } from "../../../services/api_response";
+import { Button } from "@/components/ui/button"
 
 export default function Profile() {
   const router = useRouter();
@@ -30,9 +31,9 @@ export default function Profile() {
   return (
     <RequireAuth>
       <div className={styles.container}>
-          <button className={styles.primaryButton} onClick={handleStartGame}>
+          <Button onClick={handleStartGame}>
               Start a Game
-          </button>
+          </Button>
       </div>
     </RequireAuth>
   );

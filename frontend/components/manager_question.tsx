@@ -2,6 +2,8 @@
 import styles from './question.module.css'; 
 import { Question } from '../services/ws_connection.service';
 import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button"
+
 type ManagerQuestionProps = {
   question: Question;
   num_players: number;
@@ -53,7 +55,7 @@ export const ManagerQuestion = ({
           <div className={styles.text}>Time</div>
           <div className={styles.numbers}>{timeLeft}s</div>
         </div>
-        <button className={styles.next_button} onClick={handleEndQuestion}>NEXT</button>
+        <Button onClick={handleEndQuestion}>NEXT</Button>
       </div>
     </div>
   );

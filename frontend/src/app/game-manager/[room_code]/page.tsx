@@ -8,8 +8,9 @@ import { ManagerRoom } from '../../../../components/manager_room';
 import PlayerService from '../../../../services/player.service';
 import { useParams } from 'next/navigation';
 import { useAuth } from '../../../../contexts/auth_context';
-import { Question } from '../../../services/ws_connection.service';
-import { ManagerQuestion } from '../../../components/manager_question';
+import { Question } from '../../../../services/ws_connection.service';
+import { ManagerQuestion } from '../../../../components/manager_question';
+import { Button } from "@/components/ui/button"
 
 export interface Player {
   id: string;
@@ -26,10 +27,6 @@ export default function Manager() {
   const router = useRouter();
   const { room_code }: {room_code: string} = useParams(); 
   const { token } = useAuth();
-
-  useEffect(() => {
-    roomCodeRef.current = roomCode;
-  }, [roomCode]);
 
   const fetchPlayers = useCallback(async () => {
     const response = await PlayerService.getPlayers({ room_code: room_code });
@@ -118,16 +115,16 @@ export default function Manager() {
         <ManagerRoom room_code={room_code} players={players} handleStartGame={handleStartGame}></ManagerRoom>
       )}
       {state == "question" && question !== undefined && (
-        <ManagerQuestion question={question} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
+        <ManagerQuestion question={question} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
       {state == "question_results" &&  (
-        <button className={styles.button} onClick={handleShowRanking}>Show ranking</button>
+        <Button onClick={handleShowRanking}>Show ranking</Button>
       )}
       {state == "ranking" &&  (
-        <button className={styles.button} onClick={handleNextQuestion}>Next question</button>
+        <Button onClick={handleNextQuestion}>Next question</Button>
       )}
       {state == "game_ended" &&  (
-        <button className={styles.button} onClick={() => {router.push("/profile")}}>Close</button>
+        <Button onClick={() => {router.push("/profile")}}>Close</Button>
       )}
     </div>
   );

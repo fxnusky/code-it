@@ -1,6 +1,7 @@
 'use client';
 import styles from './room.module.css'; 
 import { Player } from '../src/app/game-manager/[room_code]/page';
+import { Button } from "@/components/ui/button"
 
 type ManagerRoomProps = {
   room_code: string;
@@ -35,13 +36,12 @@ export const ManagerRoom = ({
       </div>
 
       <div className={styles.footer}>
-        <button 
-          className={styles.startButton} 
+        <Button 
           onClick={handleStartGame}
           disabled={players.length === 0}
         >
           START
-        </button>
+        </Button>
       </div>
     </div>
   );
