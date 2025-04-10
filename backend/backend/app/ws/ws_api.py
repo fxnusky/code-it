@@ -10,7 +10,13 @@ from ..services.question_service import QuestionService
 from ..repositories.question_repository import QuestionRepository
 from ..services.player_service import PlayerService
 from ..repositories.player_repository import PlayerRepository
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -24,6 +30,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
         player_service = PlayerService(player_repository)
         valid_token = player_service.verify_token(token, room_code)
         if not valid_token:
+            await websocket.close()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="This player is not authorized to connect to this room."
@@ -39,32 +46,14 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 
             except WebSocketDisconnect:
                 break
-            except json.JSONDecodeError:
-                #TODO: change to message
-                await websocket.send_json({
-                    "status": "error",
-                    "status_code": status.HTTP_400_BAD_REQUEST,
-                    "error": "INVALID_JSON",
-                    "detail": "Invalid JSON format"
-                })
-                break
-            except Exception as e:
-                #TODO: change to message
-                await websocket.send_json({
-                    "status": "error",
-                    "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    "error": "MESSAGE_PROCESSING_ERROR",
-                    "detail": str(e)
-                })
-                break
 
     except WebSocketDisconnect:
         await game_connection_service.disconnect_player(websocket, room_code)
+        await game_connection_service.send_manager_message({"action": "player_disconnected"})
+        
         
     except Exception as e:
-        await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason=str(e))
-        await game_connection_service.disconnect_player(websocket, room_code)
-        raise
+        logger.error(str(e))
     
 @router.websocket("/ws/manager")
 async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(...),  room_code: str = Query(...), db: Session = Depends(get_db)):
@@ -96,8 +85,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
             "current_question_id": game_connection_service.current_question_id
             }, websocket)
     except Exception as e:
-        await websocket.close(code=4500, reason=str(e))
-        return
+        logger.error(str(e))
         
     try:
         while True:
@@ -107,4 +95,4 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
             except WebSocketDisconnect:
                 break
     except Exception as e:
-        await websocket.close(code=1011, reason=str(e))
+        logger.error(str(e))
