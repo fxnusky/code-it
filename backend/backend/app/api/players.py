@@ -67,7 +67,7 @@ def create_player(
             )
         num_players = len(player_repository.get_players_by_room_code(player_data.room_code))
         # HARDCODED NUMBER
-        if num_players >= 30:
+        if num_players >= 2:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="The room is already full"

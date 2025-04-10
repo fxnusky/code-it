@@ -25,7 +25,7 @@ export default function JoinGame() {
       newErrors.roomCode = 'Room code is required';
       isValid = false;
     }else if (!/^\d{6}$/.test(roomCode)) {
-      newErrors.nickname = 'Room code must have 6 digits';
+      newErrors.roomCode = 'Room code must have 6 digits';
       isValid = false;
     }
 
@@ -46,9 +46,19 @@ export default function JoinGame() {
           console.log(response);
           if (response?.status == "success"){
             router.push(`/player/${response.data["token"]}`);
-          }else if (response){
-            newErrors.nickname = response.detail;
-            setErrors(newErrors);
+          }else {
+            const apiErrors = {
+              roomCode: '',
+              nickname: ''
+            };
+            if (response?.status_code === 405 || response?.status_code === 403) {
+              apiErrors.roomCode = response?.detail || 'does not exist';
+            }
+            
+            if (response?.status_code === 409) {
+              apiErrors.nickname = "This nickname is already taken in this room";
+            }
+            setErrors(apiErrors);
           }
         } catch (error) {
             console.error('Connection failed:', error);

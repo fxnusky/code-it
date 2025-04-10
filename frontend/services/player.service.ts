@@ -78,14 +78,23 @@ const PlayerService = {
               room_code: roomCode
             }),
           });
-          if (!response.ok && response.status !== 409) {
+          
+          if (!response.ok) {
+            if (response.status === 409 || response.status === 403 || response.status === 405){
+              const data = await response.json();
+              return {
+                "status": "error",
+                "status_code": response.status,
+                "detail": data.detail
+              }
+            }
             const errorData = await response.json().catch(() => ({}));
             throw new Error(
               errorData.detail || `Request failed with status ${response.status}`
             );
           }
           const data = await response.json();
-          if (data.status !== "success" && response.status !== 409) {
+          if (data.status !== "success") {
             throw new Error(data.detail || "Player creation failed");
           }
     
