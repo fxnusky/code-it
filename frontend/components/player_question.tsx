@@ -12,14 +12,12 @@ import {
 
 type PlayerQuestionProps = {
   question: Question;
-  num_questions: number;
-  question_index: number;
+  handleSubmitQuestion: () => void;
 };
 
 export const PlayerQuestion = ({
     question,
-    num_questions,
-    question_index,
+    handleSubmitQuestion
 }: PlayerQuestionProps) => {
 
   function handleEditorChange(value: string | undefined) {
@@ -30,7 +28,7 @@ export const PlayerQuestion = ({
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={30}>
         <div className={styles.question_section}>
-          <h1 className={styles.question_title}>QUESTION {question_index + 1}/{num_questions}</h1>
+          <h1 className={styles.question_title}>Description:</h1>
           <p className={styles.question_description}>{question.description}</p>
         </div>
         </ResizablePanel>
@@ -51,7 +49,7 @@ export const PlayerQuestion = ({
             <ResizablePanel defaultSize={40}>
             <div className={styles.button_bar}>
               <Button variant="secondary" className={styles.margin_inline}>Run</Button>
-              <Button>Submit</Button>
+              <Button onClick={handleSubmitQuestion}>Submit</Button>
             </div>
             
             <div className={styles.terminal}>

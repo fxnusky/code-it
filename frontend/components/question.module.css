@@ -2,6 +2,7 @@
     display: flex;
     height: 100vh;
     font-family: 'Arial', sans-serif;
+    min-width: 100%;
 }
 
 .side_section {
@@ -41,6 +42,7 @@
     padding: 40px;
     background-color: white;
     overflow-y: auto;
+    width: 100%;
 }
 
 .question_title {
