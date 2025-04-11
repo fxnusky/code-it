@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import styles from '../../page.module.css';
 import { useWSConnection } from '../../../../contexts/ws_connection_context';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ export default function Manager() {
   const [questionIds, setQuestionIds] = useState<number[]>([]);
   const [question, setQuestion] = useState<Question>();
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [submissions, setSubmissions] = useState(0);
   const connectionService = useWSConnection();
   const router = useRouter();
   const { room_code }: {room_code: string} = useParams(); 
@@ -46,7 +47,7 @@ export default function Manager() {
       }
       setState(message.action);
     }else if (message.action === "player_submitted"){
-      // set the amount of submissions
+      setSubmissions(prevSubmissions => prevSubmissions + 1);
     }else if (message.action === "question_results"){
       setState(message.action);
       // recieve question results and set it
@@ -77,10 +78,11 @@ export default function Manager() {
     connectionService.sendMessage({"action": "end_question"})
   }
   const handleNextQuestion = () =>{
+    setSubmissions(0);
     if (questionIndex +1 < questionIds.length){
       setQuestionIndex(questionIndex + 1)
       // Send question id
-      connectionService.sendMessage({"action": "next_question"})
+      connectionService.sendMessage({"action": "next_question", "question_id": questionIds[questionIndex]})
     }else{
       setState("game_ended");
       connectionService.sendMessage({"action": "end_game"})
@@ -98,6 +100,7 @@ export default function Manager() {
 
       } catch (error) {
         console.error('Connection error:', error);
+        setState("error");
       }
     };
 
@@ -105,7 +108,7 @@ export default function Manager() {
       connectToRoom();
     }
   }, [connectionService, token, room_code]);
-  
+
   const handleStartGame = () =>{
     connectionService.sendMessage({"action": "start_game", "question_id": questionIds[questionIndex]})
   }
@@ -115,7 +118,7 @@ export default function Manager() {
         <ManagerRoom room_code={room_code} players={players} handleStartGame={handleStartGame}></ManagerRoom>
       )}
       {state == "question" && question !== undefined && (
-        <ManagerQuestion question={question} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
+        <ManagerQuestion question={question} submissions={submissions} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
       {state == "question_results" &&  (
         <Button onClick={handleShowRanking}>Show ranking</Button>
@@ -125,6 +128,12 @@ export default function Manager() {
       )}
       {state == "game_ended" &&  (
         <Button onClick={() => {router.push("/profile")}}>Close</Button>
+      )}
+      {state == "error" &&  (
+        <div className={styles.container}>
+          <p>You cannot access this room</p>
+          <Button onClick={() => {router.push("/profile")}}>Back to profile</Button>
+        </div>
       )}
     </div>
   );

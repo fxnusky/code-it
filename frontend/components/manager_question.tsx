@@ -9,6 +9,7 @@ type ManagerQuestionProps = {
   num_players: number;
   num_questions: number;
   question_index: number;
+  submissions: number;
   handleEndQuestion: () => void;
 };
 
@@ -17,11 +18,25 @@ export const ManagerQuestion = ({
     num_players,
     num_questions,
     question_index,
+    submissions,
     handleEndQuestion,
 }: ManagerQuestionProps) => {
   const [timeLeft, setTimeLeft] = useState(question.time_limit); 
-  const [submissions, setSubmissions] = useState(0); 
 
+  const formatTime = (seconds: number): string => {
+    if (seconds >= 3600) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${secs}`;
+    } else if (seconds >= 60) {
+        const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${minutes}:${secs}`;
+    } else {
+        return `${seconds.toString().padStart(2, '0')}`;
+    }
+  };
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -53,7 +68,7 @@ export const ManagerQuestion = ({
         </div>
         <div className={styles.controls_container}>
           <div className={styles.text}>Time</div>
-          <div className={styles.numbers}>{timeLeft}s</div>
+          <div className={styles.numbers}>{formatTime(timeLeft)}</div>
         </div>
         <Button onClick={handleEndQuestion}>NEXT</Button>
       </div>

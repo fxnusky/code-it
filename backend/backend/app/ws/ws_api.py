@@ -64,6 +64,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         auth_service = AuthService(user_repository)
         user = auth_service.get_or_create_user(token)
         if not user.active_room == room_code:
+            await websocket.close()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="This user is not authorized to manage this room."

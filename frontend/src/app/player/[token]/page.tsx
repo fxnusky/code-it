@@ -10,6 +10,7 @@ import PlayerService from '../../../../services/player.service';
 import { ApiResponse } from '../../../../services/api_response';
 import { Question } from '../../../../services/ws_connection.service';
 import { Button } from "@/components/ui/button"
+import { PlayerQuestion } from '../../../../components/player_question';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
@@ -36,6 +37,7 @@ export default function Profile() {
                 await connectionService.player_connect(room_code, nickname, token);
             } catch (error) {
                 console.error('Error:', error);
+                setState("error");
             }
         };
     
@@ -80,7 +82,6 @@ export default function Profile() {
         }else{
             console.error("Unknown message from server ", message)
         }
-        
       };
     
     const handleSubmitQuestion = () => {
@@ -95,8 +96,8 @@ export default function Profile() {
             {state == "joined" &&  (
                 <PlayerRoom room_code={roomCode} nickname={nickname}></PlayerRoom>
             )}
-            {state == "question" &&  (
-                <Button onClick={handleSubmitQuestion}>Send question</Button>
+            {state == "question" && question !== undefined &&  (
+                <PlayerQuestion question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
             )}
             {state == "question_submitted" &&  (
                 <p>Question submitted!</p>
@@ -109,6 +110,12 @@ export default function Profile() {
             )}
             {state == "game_ended" &&  (
                 <Button onClick={() => {router.push("/join-room")}}>Close</Button>
+            )}
+            {state == "error" &&  (
+                <div className={styles.container}>
+                    <p>You cannot access this room</p>
+                    <Button onClick={() => {router.push("/join-room")}}>Go back</Button>
+                </div>
             )}
         </div>
     );
