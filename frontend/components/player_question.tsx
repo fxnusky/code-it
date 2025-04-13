@@ -2,12 +2,13 @@
 import styles from './question.module.css'; 
 import { Question } from '../services/ws_connection.service';
 import Editor from '@monaco-editor/react';
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable"
+} from "@/components/ui/resizable";
+import { useState, useEffect } from 'react';
 
 
 type PlayerQuestionProps = {
@@ -19,10 +20,20 @@ export const PlayerQuestion = ({
     question,
     handleSubmitQuestion
 }: PlayerQuestionProps) => {
-
+  const [code, setCode] = useState('');
   function handleEditorChange(value: string | undefined) {
-    console.log('here is the current model value:', value);
+    if (value){
+      setCode(value);
+    }
   }
+
+  useEffect(() => {
+    if (question?.code_starter) {
+        const formattedCode = question.code_starter.replace(/\\n/g, '\n');
+        setCode(formattedCode);
+    }
+  }, [question]);
+
   return (
     <div className={styles.question_container}>
       <ResizablePanelGroup direction="horizontal">
@@ -39,9 +50,14 @@ export const PlayerQuestion = ({
             <div className={styles.editor_container}>
               <Editor
                 height="100vh"
-                defaultLanguage="javascript"
-                defaultValue="// some comment"
+                defaultLanguage="python"
                 onChange={handleEditorChange}
+                value={code}
+                options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    wordWrap: 'on',
+                }}
               />
             </div>
             </ResizablePanel>

@@ -13,13 +13,14 @@ export type GameMessage = {
   current_question_id?: number,
   nickname?: string,
   manager_connected?: boolean
-  question?: Question
+  question?: Question,
 };
 
 export interface Question {
   id: number,
   description: string,
-  time_limit: number
+  time_limit: number,
+  code_starter: string
 }
 
 class WsConnectionService {
