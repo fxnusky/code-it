@@ -19,7 +19,8 @@ class QuestionService:
             return {
                 "id": question.id,
                 "description": question.description,
-                "time_limit": question.time_limit
+                "time_limit": question.time_limit,
+                "code_starter": question.code_starter
             }
         except HTTPException:
             raise

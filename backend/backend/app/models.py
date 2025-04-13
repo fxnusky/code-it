@@ -60,7 +60,6 @@ class Submission(Base):
     code = Column(Text, nullable=False)
     earned_points = Column(Integer, nullable=False, default=0)
     submission_time = Column(TIMESTAMP, server_default=func.now())
-    language = Column(String(50), default='python')
 
 class TestCaseExecution(Base):
     __tablename__ = 'test_case_executions'
