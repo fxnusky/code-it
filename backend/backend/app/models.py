@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, Text, Boolean, TIMESTAMP
 from .database import Base
+from sqlalchemy.sql import func
 
 class User(Base):
     __tablename__ = "users"
@@ -39,3 +40,33 @@ class Question(Base):
     template_id = Column(Integer, ForeignKey('game_templates.id', ondelete="CASCADE"), nullable=False)
     order_key = Column(Float, nullable=False)
     time_limit = Column(Integer, nullable=False) 
+    code_starter = Column(Text, nullable=False)
+
+class TestCase(Base):
+    __tablename__ = 'test_cases'
+
+    case_id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey('questions.id', ondelete="CASCADE"))
+    input = Column(Text, nullable=False)
+    expected_output = Column(Text, nullable=False)
+    is_hidden = Column(Boolean, default=False)
+
+class Submission(Base):
+    __tablename__ = 'submissions'
+
+    submission_id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey('questions.id', ondelete="CASCADE"), nullable=False)
+    player_id = Column(Integer, nullable=False)
+    code = Column(Text, nullable=False)
+    earned_points = Column(Integer, nullable=False, default=0)
+    submission_time = Column(TIMESTAMP, server_default=func.now())
+    language = Column(String(50), default='python')
+
+class TestCaseExecution(Base):
+    __tablename__ = 'test_case_executions'
+
+    case_execution_id = Column(Integer, primary_key=True, index=True)
+    submission_id = Column(Integer, ForeignKey('submissions.submission_id', ondelete="CASCADE"), nullable=False)
+    case_id = Column(Integer, ForeignKey('test_cases.case_id', ondelete="CASCADE"), nullable=False)
+    obtained_output = Column(Text, nullable=False)
+    correct = Column(Boolean, nullable=False)
