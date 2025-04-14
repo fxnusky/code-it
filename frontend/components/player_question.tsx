@@ -21,11 +21,6 @@ export const PlayerQuestion = ({
     handleSubmitQuestion
 }: PlayerQuestionProps) => {
   const [code, setCode] = useState('');
-  function handleEditorChange(value: string | undefined) {
-    if (value){
-      setCode(value);
-    }
-  }
 
   useEffect(() => {
     if (question?.code_starter) {
@@ -33,6 +28,25 @@ export const PlayerQuestion = ({
         setCode(formattedCode);
     }
   }, [question]);
+
+  useEffect(() => {
+    const savedCode = localStorage.getItem(`code-${question.id}`);
+    if (savedCode) {
+      setCode(savedCode)
+    };
+  }, [question.id]);
+  
+  const handleEditorChange = (value: string | undefined) => {
+    if (value) {
+      setCode(value);
+      localStorage.setItem(`code-${question.id}`, value); 
+    }
+  };
+  
+  const handleSubmit = () => {
+    localStorage.removeItem(`code-${question.id}`); 
+    handleSubmitQuestion();
+  };
 
   return (
     <div className={styles.question_container}>
@@ -65,7 +79,7 @@ export const PlayerQuestion = ({
             <ResizablePanel defaultSize={40}>
             <div className={styles.button_bar}>
               <Button variant="secondary" className={styles.margin_inline}>Run</Button>
-              <Button onClick={handleSubmitQuestion}>Submit</Button>
+              <Button onClick={handleSubmit}>Submit</Button>
             </div>
             
             <div className={styles.terminal}>

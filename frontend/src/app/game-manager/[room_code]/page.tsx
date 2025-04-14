@@ -21,7 +21,7 @@ export default function Manager() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [state, setState] = useState('');
   const [questionIds, setQuestionIds] = useState<number[]>([]);
-  const [question, setQuestion] = useState<Question>();
+  const [question, setQuestion] = useState<Question | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [submissions, setSubmissions] = useState(0);
   const connectionService = useWSConnection();
@@ -67,6 +67,9 @@ export default function Manager() {
       if(message.current_question_id && message.question_ids){
         setQuestionIndex(message.question_ids.indexOf(message.current_question_id))
       }
+      if (message.question){
+        setQuestion(message.question);
+      }
     }else{
       console.error("Unknown message from server ", message)
     }
@@ -75,14 +78,16 @@ export default function Manager() {
 
   const handleEndQuestion = () =>{
     // Send question id
+    localStorage.removeItem(`time_start`);
     connectionService.sendMessage({"action": "end_question"})
   }
   const handleNextQuestion = () =>{
     setSubmissions(0);
-    if (questionIndex +1 < questionIds.length){
-      setQuestionIndex(questionIndex + 1)
+    let nextIndex = questionIndex +1;
+    if (nextIndex < questionIds.length){
+      setQuestionIndex(nextIndex)
       // Send question id
-      connectionService.sendMessage({"action": "next_question", "question_id": questionIds[questionIndex]})
+      connectionService.sendMessage({"action": "next_question", "question_id": questionIds[nextIndex]})
     }else{
       setState("game_ended");
       connectionService.sendMessage({"action": "end_game"})
@@ -117,7 +122,7 @@ export default function Manager() {
       {state == "room_opened" &&  (
         <ManagerRoom room_code={room_code} players={players} handleStartGame={handleStartGame}></ManagerRoom>
       )}
-      {state == "question" && question !== undefined && (
+      {state == "question" && question && (
         <ManagerQuestion question={question} submissions={submissions} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
       {state == "question_results" &&  (
