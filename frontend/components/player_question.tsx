@@ -2,12 +2,13 @@
 import styles from './question.module.css'; 
 import { Question } from '../services/ws_connection.service';
 import Editor from '@monaco-editor/react';
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable"
+} from "@/components/ui/resizable";
+import { useState, useEffect } from 'react';
 
 
 type PlayerQuestionProps = {
@@ -19,10 +20,34 @@ export const PlayerQuestion = ({
     question,
     handleSubmitQuestion
 }: PlayerQuestionProps) => {
+  const [code, setCode] = useState('');
 
-  function handleEditorChange(value: string | undefined) {
-    console.log('here is the current model value:', value);
-  }
+  useEffect(() => {
+    if (question?.code_starter) {
+        const formattedCode = question.code_starter.replace(/\\n/g, '\n');
+        setCode(formattedCode);
+    }
+  }, [question]);
+
+  useEffect(() => {
+    const savedCode = localStorage.getItem(`code-${question.id}`);
+    if (savedCode) {
+      setCode(savedCode)
+    };
+  }, [question.id]);
+  
+  const handleEditorChange = (value: string | undefined) => {
+    if (value) {
+      setCode(value);
+      localStorage.setItem(`code-${question.id}`, value); 
+    }
+  };
+  
+  const handleSubmit = () => {
+    localStorage.removeItem(`code-${question.id}`); 
+    handleSubmitQuestion();
+  };
+
   return (
     <div className={styles.question_container}>
       <ResizablePanelGroup direction="horizontal">
@@ -39,9 +64,14 @@ export const PlayerQuestion = ({
             <div className={styles.editor_container}>
               <Editor
                 height="100vh"
-                defaultLanguage="javascript"
-                defaultValue="// some comment"
+                defaultLanguage="python"
                 onChange={handleEditorChange}
+                value={code}
+                options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    wordWrap: 'on',
+                }}
               />
             </div>
             </ResizablePanel>
@@ -49,7 +79,7 @@ export const PlayerQuestion = ({
             <ResizablePanel defaultSize={40}>
             <div className={styles.button_bar}>
               <Button variant="secondary" className={styles.margin_inline}>Run</Button>
-              <Button onClick={handleSubmitQuestion}>Submit</Button>
+              <Button onClick={handleSubmit}>Submit</Button>
             </div>
             
             <div className={styles.terminal}>

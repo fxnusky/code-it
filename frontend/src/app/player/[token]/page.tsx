@@ -17,7 +17,7 @@ export default function Profile() {
     const [nickname, setNickname] = useState("");
     const [state, setState] = useState('')
     const [isManagerConnected, setIsManagerConnected] = useState(true);
-    const [question, setQuestion] = useState<Question>();
+    const [question, setQuestion] = useState<Question | null>(null);
     const connectionService = useWSConnection();
     const router = useRouter();
     const { token }: {token: string} = useParams(); 
@@ -59,6 +59,9 @@ export default function Profile() {
             if (message.manager_connected){
                 setIsManagerConnected(message.manager_connected);
             }
+            if (message.question){
+                setQuestion(message.question);
+            }
         }else if (message.action === "question"){
             if (message.question){
                 setQuestion(message.question);
@@ -93,10 +96,10 @@ export default function Profile() {
             {!isManagerConnected &&(
                 <p className={styles.errorText}>The room manager has disconnected.</p>
             )}
-            {state == "joined" &&  (
+            {state == "room_opened" &&  (
                 <PlayerRoom room_code={roomCode} nickname={nickname}></PlayerRoom>
             )}
-            {state == "question" && question !== undefined &&  (
+            {state == "question" && question &&  (
                 <PlayerQuestion question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
             )}
             {state == "question_submitted" &&  (

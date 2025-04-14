@@ -21,7 +21,20 @@ export const ManagerQuestion = ({
     submissions,
     handleEndQuestion,
 }: ManagerQuestionProps) => {
-  const [timeLeft, setTimeLeft] = useState(question.time_limit); 
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const startTime = localStorage.getItem(`time_start`);
+    if (!startTime) return question.time_limit; 
+    
+    const elapsedSeconds = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+    const remainingTime = Math.max(0, question.time_limit - elapsedSeconds);
+    return remainingTime;
+  });
+
+  useEffect(() => {
+    if (!localStorage.getItem(`time_start`)) {
+      localStorage.setItem(`time_start`, Date.now().toString());
+    }
+  }, [question.id]);
 
   const formatTime = (seconds: number): string => {
     if (seconds >= 3600) {

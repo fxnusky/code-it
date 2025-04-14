@@ -13,13 +13,14 @@ export type GameMessage = {
   current_question_id?: number,
   nickname?: string,
   manager_connected?: boolean
-  question?: Question
+  question?: Question,
 };
 
 export interface Question {
   id: number,
   description: string,
-  time_limit: number
+  time_limit: number,
+  code_starter: string
 }
 
 class WsConnectionService {
@@ -73,9 +74,10 @@ class WsConnectionService {
   private async establishConnection(wsUrl: string): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
       try {
+        this.cleanUp();
+
         this.socket = new WebSocket(wsUrl);
         this.connectionState = 'connecting';
-        this.reconnectAttempts = 0; 
 
         this.socket.onopen = () => {
           this.connectionState = 'open';
@@ -88,7 +90,7 @@ class WsConnectionService {
           console.error('WebSocket error:', error);
           if (!this.scheduleReconnect()) {
             this.cleanUp();
-            reject(new Error(`WebSocket connection failed: ${error}`));
+            reject(`WebSocket connection failed: ${error}`);
           }
         };
 
@@ -114,7 +116,7 @@ class WsConnectionService {
       } catch (error) {
         if (!this.scheduleReconnect()) {
           this.cleanUp();
-          reject(new Error(`WebSocket initialization failed: ${error}`));
+          reject(`WebSocket initialization failed: ${error}`);
         }
       }
     });

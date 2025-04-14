@@ -61,16 +61,16 @@ CREATE TABLE IF NOT EXISTS test_case_executions (
 
 INSERT INTO game_templates DEFAULT VALUES;
 
-INSERT INTO questions (description, template_id, order_key, time_limit, code_starter, language)
+INSERT INTO questions (description, template_id, order_key, time_limit, code_starter)
 VALUES 
     ('Write a function called "add" that takes two numbers as arguments and returns their sum.', 
-     1, 1, 60, 'def add(a, b):\n    # Your code here', 'python'),
+     1, 1, 600, 'def add(a, b):\n    # Your code here'),
      
     ('Write a function called "is_even" that takes a number and returns True if it''s even, False otherwise.', 
-     1, 2, 45, 'def is_even(num):\n    # Your code here', 'python'),
+     1, 2, 450, 'def is_even(num):\n    # Your code here'),
      
     ('Write a function called "reverse_string" that takes a string and returns the reversed version.', 
-     1, 3, 75, 'def reverse_string(s):\n    # Your code here', 'python');
+     1, 3, 750, 'def reverse_string(s):\n    # Your code here');
 
 
 INSERT INTO test_cases (question_id, input, expected_output, is_hidden)
