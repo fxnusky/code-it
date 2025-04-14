@@ -16,6 +16,7 @@ async def handle_manager_message(data: dict, room_code: str, game_connection_ser
     logger.info(f"Received manager message: {data}")
     if data["action"] == "start_game" or  data["action"] == "next_question":
         question_id = data["question_id"]
+        game_connection_service.current_question_id = question_id
         question = question_service.get_question_by_id(question_id)
         await game_connection_service.set_state("question", room_code, db)
         await game_connection_service.send_manager_message({"action": "question", "question": question}, room_code)

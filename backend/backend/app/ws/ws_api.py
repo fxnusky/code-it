@@ -35,8 +35,21 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="This player is not authorized to connect to this room."
             )
+        question = None
+        if game_connection_service.state == "question" and game_connection_service.current_question_id:
+            question_repository = QuestionRepository(db)
+            question_service = QuestionService(question_repository)
+            question = question_service.get_question_by_id(game_connection_service.current_question_id)
         await game_connection_service.connect_player(websocket, room_code)
-        await game_connection_service.send_message({"action": "status", "state": "joined", "room_code": room_code, "nickname": nickname, "manager_connected": game_connection_service.rooms[room_code]["manager"] != None}, websocket)
+        await game_connection_service.send_message({
+            "action": "status", 
+            "state": game_connection_service.state, 
+            "room_code": room_code, 
+            "nickname": nickname, 
+            "manager_connected": game_connection_service.rooms[room_code]["manager"] != None,
+            "question": question
+            }, 
+            websocket)
         await game_connection_service.send_manager_message({"action": "player_joined"}, room_code)
        
         while True:
@@ -74,6 +87,10 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         question_repository = QuestionRepository(db)
         question_service = QuestionService(question_repository)
         question_ids = question_service.get_sorted_question_ids(room_code)
+
+        question = None
+        if game_connection_service.state == "question" and game_connection_service.current_question_id:
+            question = question_service.get_question_by_id(game_connection_service.current_question_id)
         
         player_repository = PlayerRepository(db)
         player_service = PlayerService(player_repository)
@@ -84,7 +101,8 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
             "state": game_connection_service.state, 
             "question_ids": question_ids, 
             "players": players, 
-            "current_question_id": game_connection_service.current_question_id
+            "current_question_id": game_connection_service.current_question_id,
+            "question": question
             }, websocket)
         await game_connection_service.broadcast_players({"action": "manager_connected"}, room_code)
     except Exception as e:
