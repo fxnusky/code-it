@@ -22,11 +22,36 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase
+      ISOLATE_SERVICE_URL: http://isolate-service:8001
     depends_on:
       - db
+      - isolate-service
+    networks:
+      - mynetwork
+
+  isolate-service:
+    build:
+      context: ./isolate-service
+      dockerfile: Dockerfile
+    container_name: isolate_service
+    ports:
+      - "8001:8001"
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - isolate-boxes:/var/local/lib/isolate
+      - isolate-locks:/run/isolate/locks
+      - isolate-cgroup:/run/isolate/cgroup
+      - ./isolate-service:/app
     networks:
       - mynetwork
 
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  isolate-boxes:
+  isolate-locks:
+  isolate-cgroup:
