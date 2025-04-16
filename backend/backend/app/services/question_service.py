@@ -20,7 +20,8 @@ class QuestionService:
                 "id": question.id,
                 "description": question.description,
                 "time_limit": question.time_limit,
-                "code_starter": question.code_starter
+                "code_starter": question.code_starter,
+                "main_function" : question.main_function
             }
         except HTTPException:
             raise

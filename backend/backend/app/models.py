@@ -41,6 +41,7 @@ class Question(Base):
     order_key = Column(Float, nullable=False)
     time_limit = Column(Integer, nullable=False) 
     code_starter = Column(Text, nullable=False)
+    main_function = Column(Text, nullable=False)
 
 class TestCase(Base):
     __tablename__ = 'test_cases'
