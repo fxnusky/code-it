@@ -20,7 +20,8 @@ export interface Question {
   id: number,
   description: string,
   time_limit: number,
-  code_starter: string
+  code_starter: string,
+  main_function: string
 }
 
 class WsConnectionService {

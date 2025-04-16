@@ -11,6 +11,7 @@ import { ApiResponse } from '../../../../services/api_response';
 import { Question } from '../../../../services/ws_connection.service';
 import { Button } from "@/components/ui/button"
 import { PlayerQuestion } from '../../../../components/player_question';
+import ExecuteService from '../../../../services/execute.service';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
@@ -87,8 +88,16 @@ export default function Profile() {
         }
       };
     
-    const handleSubmitQuestion = () => {
-        connectionService.sendMessage({"action": "submit_question"})
+    async function handleSubmitQuestion(code: string) {
+        console.log(question?.id, question?.main_function)
+        if (question?.id && question?.main_function){
+            let question_id = question?.id
+            let main_function = question?.main_function
+            let submission = await ExecuteService.submitCode({code, token, question_id, main_function})
+            if (submission && submission.status==="success"){
+                connectionService.sendMessage({"action": "submit_question"})
+            }
+        }        
     }
 
     return (

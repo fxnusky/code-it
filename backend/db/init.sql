@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS questions (
     template_id INTEGER REFERENCES game_templates(id) ON DELETE CASCADE,
     order_key FLOAT NOT NULL,
     time_limit INTEGER NOT NULL,
-    code_starter TEXT NOT NULL
+    code_starter TEXT NOT NULL,
+    main_function TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS test_cases (
@@ -61,16 +62,16 @@ CREATE TABLE IF NOT EXISTS test_case_executions (
 
 INSERT INTO game_templates DEFAULT VALUES;
 
-INSERT INTO questions (description, template_id, order_key, time_limit, code_starter)
+INSERT INTO questions (description, template_id, order_key, time_limit, code_starter, main_function)
 VALUES 
     ('Write a function called "add" that takes two numbers as arguments and returns their sum.', 
-     1, 1, 600, 'def add(a, b):\n    # Your code here'),
+     1, 1, 600, 'def add(a, b):\n    # Your code here', 'add'),
      
     ('Write a function called "is_even" that takes a number and returns True if it''s even, False otherwise.', 
-     1, 2, 450, 'def is_even(num):\n    # Your code here'),
+     1, 2, 450, 'def is_even(num):\n    # Your code here', 'is_even'),
      
     ('Write a function called "reverse_string" that takes a string and returns the reversed version.', 
-     1, 3, 750, 'def reverse_string(s):\n    # Your code here');
+     1, 3, 750, 'def reverse_string(s):\n    # Your code here', 'reverse_string');
 
 
 INSERT INTO test_cases (question_id, input, expected_output, is_hidden)
