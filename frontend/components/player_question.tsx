@@ -14,7 +14,7 @@ import ExecuteService from '../services/execute.service';
 
 type PlayerQuestionProps = {
   question: Question;
-  handleSubmitQuestion: () => void;
+  handleSubmitQuestion: (code: string) => void;
 };
 
 export const PlayerQuestion = ({
@@ -48,7 +48,7 @@ export const PlayerQuestion = ({
   
   const handleSubmit = () => {
     localStorage.removeItem(`code-${question.id}`); 
-    handleSubmitQuestion();
+    handleSubmitQuestion(code);
   };
 
   async function runCode() {
