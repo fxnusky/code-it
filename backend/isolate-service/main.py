@@ -1,6 +1,6 @@
 import os
 import subprocess
-import logging
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -8,12 +8,13 @@ from pathlib import Path
 
 app = FastAPI()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-logger = logging.getLogger("isolate_runner")
 
 class CodeExecutionRequest(BaseModel):
     code: str
@@ -24,7 +25,6 @@ class CodeExecutionRequest(BaseModel):
 async def execute_code(request: CodeExecutionRequest):
     try:
         # Step 1: Initialize the isolate box
-        logger.info("Initializing isolate box...")
         init_result = subprocess.run(
             ["isolate", "--init", "--box-id=60"],
             capture_output=True,
@@ -38,7 +38,6 @@ async def execute_code(request: CodeExecutionRequest):
             )
         
         box_path = init_result.stdout.strip()
-        logger.info(f"Box initialized at: {box_path}")
 
         # Step 2: Prepare the code file
         box_dir = Path(box_path) / "box"
@@ -49,10 +48,7 @@ async def execute_code(request: CodeExecutionRequest):
             f.write(request.code)
         executable = ["python3", "script.py"]
 
-        logger.info(f"Code written to {file_path}")
-
         # Step 3: Execute the code in isolate
-        logger.info("Running code in isolate...")
         meta_file = box_dir / "meta.txt"
         
         executable = ["/usr/bin/python3", "/box/script.py"]
@@ -82,28 +78,29 @@ async def execute_code(request: CodeExecutionRequest):
                         key, value = line.split(':', 1)
                         meta[key.strip()] = value.strip()
         
-        logger.info(f"Execution completed. Status: {run_result.returncode}")
 
         # Step 5: Clean up
-        logger.info("Cleaning up isolate box...")
         subprocess.run(["isolate", "--cleanup", "--box-id=60"], check=True)
 
         return {
-            "output": output,
-            "error": error,
-            "return_code": run_result.returncode,
-            "metadata": meta
+            "status":"success",
+            "data": {
+                "output": output,
+                "error": error,
+                "return_code": run_result.returncode,
+                "metadata": meta
+            }
         }
 
     except subprocess.CalledProcessError as e:
-        logger.error(f"Subprocess error: {str(e)}")
         raise HTTPException(
+            status="error",
             status_code=500,
             detail=f"Execution failed: {str(e)}"
         )
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(
+            status="error",
             status_code=500,
             detail=f"Unexpected error: {str(e)}"
         )
