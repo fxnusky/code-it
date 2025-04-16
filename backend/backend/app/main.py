@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api import auth, players, rooms, game_templates, questions
+from .api import auth, players, rooms, game_templates, questions, submissions
 from .database import Base, engine
 from .ws import ws_api
 
@@ -22,6 +22,7 @@ app.include_router(rooms.router)
 app.include_router(ws_api.router)
 app.include_router(game_templates.router)
 app.include_router(questions.router)
+app.include_router(submissions.router)
 
 @app.get("/")
 def read_root():

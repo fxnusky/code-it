@@ -9,6 +9,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useState, useEffect } from 'react';
+import ExecuteService from '../services/execute.service';
 
 
 type PlayerQuestionProps = {
@@ -21,6 +22,8 @@ export const PlayerQuestion = ({
     handleSubmitQuestion
 }: PlayerQuestionProps) => {
   const [code, setCode] = useState('');
+  const [terminalText, setTerminalText] = useState('');
+
 
   useEffect(() => {
     if (question?.code_starter) {
@@ -48,6 +51,20 @@ export const PlayerQuestion = ({
     handleSubmitQuestion();
   };
 
+  async function runCode() {
+    let result = await ExecuteService.runCode({code});
+    if (result && result.data.return_code === 0){
+      const formattedOutput = result.data.output.replace(/\\n/g, '\n');
+      setTerminalText(formattedOutput)
+    }
+    else if (result){
+      const formattedError = result.data.error.replace(/\\n/g, '\n');
+      setTerminalText(formattedError)
+    }
+    else{
+      setTerminalText("Error")
+    }
+  };
   return (
     <div className={styles.question_container}>
       <ResizablePanelGroup direction="horizontal">
@@ -78,12 +95,12 @@ export const PlayerQuestion = ({
             <ResizableHandle />
             <ResizablePanel defaultSize={40}>
             <div className={styles.button_bar}>
-              <Button variant="secondary" className={styles.margin_inline}>Run</Button>
+              <Button variant="secondary" className={styles.margin_inline} onClick={runCode}>Run</Button>
               <Button onClick={handleSubmit}>Submit</Button>
             </div>
             
             <div className={styles.terminal}>
-              {/* Terminal output will go here */}
+              {terminalText}
             </div>
             </ResizablePanel>
           </ResizablePanelGroup>
