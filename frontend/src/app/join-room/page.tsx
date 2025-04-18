@@ -5,11 +5,13 @@ import { useState } from 'react';
 import styles from '../page.module.css';
 import PlayerService from '../../../services/player.service';
 import { Button } from "@/components/ui/button"
+import { LoadingState } from '../../../components/loading_state';
 
 export default function JoinGame() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState('');
   const [nickname, setNickname] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     roomCode: '',
     nickname: ''
@@ -41,6 +43,7 @@ export default function JoinGame() {
     setErrors(newErrors);
 
     if (isValid) {
+      setIsLoading(true);
       const connect = async () => {
         try {
           let response = await PlayerService.createPlayer({nickname, roomCode})
@@ -63,6 +66,8 @@ export default function JoinGame() {
           }
         } catch (error) {
             console.error('Connection failed:', error);
+        } finally{
+            setIsLoading(true);
         }
       }
       connect();
@@ -71,64 +76,70 @@ export default function JoinGame() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.cardContent}>
-          <h1 className={styles.title}>Join a game</h1>
-          
-          <div className={styles.inputContainer}>
-            <input
-              type="text"
-              placeholder="Room code"
-              className={`${styles.inputField} ${errors.roomCode ? styles.errorInput : ''}`}
-              value={roomCode}
-              onChange={(e) => {
-                setRoomCode(e.target.value);
-                setErrors({...errors, roomCode: ''});
-              }}
-              required
-            />
-            {errors.roomCode && (
-              <p className={styles.errorText}>{errors.roomCode}</p>
-            )}
-          </div>
+      {isLoading? (
+        <LoadingState></LoadingState>
+      ):(
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <div className={styles.cardContent}>
+              <h1 className={styles.title}>Join a game</h1>
+              
+              <div className={styles.inputContainer}>
+                <input
+                  type="text"
+                  placeholder="Room code"
+                  className={`${styles.inputField} ${errors.roomCode ? styles.errorInput : ''}`}
+                  value={roomCode}
+                  onChange={(e) => {
+                    setRoomCode(e.target.value);
+                    setErrors({...errors, roomCode: ''});
+                  }}
+                  required
+                />
+                {errors.roomCode && (
+                  <p className={styles.errorText}>{errors.roomCode}</p>
+                )}
+              </div>
 
-          <div className={styles.inputContainer}>
-            <input
-              type="text"
-              placeholder="Your nickname"
-              className={`${styles.inputField} ${errors.nickname ? styles.errorInput : ''}`}
-              value={nickname}
-              onChange={(e) => {
-                setNickname(e.target.value);
-                setErrors({...errors, nickname: ''});
-              }}
-              required
-              maxLength={20}
-            />
-            {errors.nickname && (
-              <p className={styles.errorText}>{errors.nickname}</p>
-            )}
-          </div>
+              <div className={styles.inputContainer}>
+                <input
+                  type="text"
+                  placeholder="Your nickname"
+                  className={`${styles.inputField} ${errors.nickname ? styles.errorInput : ''}`}
+                  value={nickname}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                    setErrors({...errors, nickname: ''});
+                  }}
+                  required
+                  maxLength={20}
+                />
+                {errors.nickname && (
+                  <p className={styles.errorText}>{errors.nickname}</p>
+                )}
+              </div>
 
-          <Button 
-            onClick={handleJoinRoom}
-            style={{ width: '100%' }}
-          >
-            Join Room
-          </Button>
+              <Button 
+                onClick={handleJoinRoom}
+                style={{ width: '100%' }}
+              >
+                Join Room
+              </Button>
+            </div>
+          </div>   
+          <div className={styles.card}>
+            <div className={styles.cardContent}>
+              <p className={styles.createGameText}>Want to create your own game?</p>
+              <Button 
+                onClick={() => router.push("/profile")}
+                variant="secondary"
+              >
+                Enter the application
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>   
-      <div className={styles.card}>
-        <div className={styles.cardContent}>
-          <p className={styles.createGameText}>Want to create your own game?</p>
-          <Button 
-            onClick={() => router.push("/profile")}
-            variant="secondary"
-          >
-            Enter the application
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
