@@ -109,7 +109,7 @@ export default function Profile() {
                 <PlayerRoom room_code={roomCode} nickname={nickname}></PlayerRoom>
             )}
             {state == "question" && question &&  (
-                <PlayerQuestion question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
+                <PlayerQuestion token={token} question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
             )}
             {state == "question_submitted" &&  (
                 <p>Question submitted!</p>

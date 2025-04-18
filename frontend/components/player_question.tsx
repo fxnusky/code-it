@@ -13,13 +13,13 @@ import ExecuteService from '../services/execute.service';
 
 
 type PlayerQuestionProps = {
-  player_id: number;
+  token: string;
   question: Question;
   handleSubmitQuestion: (code: string) => void;
 };
 
 export const PlayerQuestion = ({
-    player_id,
+    token,
     question,
     handleSubmitQuestion
 }: PlayerQuestionProps) => {
@@ -35,26 +35,26 @@ export const PlayerQuestion = ({
   }, [question]);
 
   useEffect(() => {
-    const roomData = JSON.parse(localStorage.getItem(`room-${player_id}`) || '{}');
+    const roomData = JSON.parse(localStorage.getItem(`room-${token}`) || '{}');
     
     if (roomData[`code-${question.id}`]) {
       setCode(roomData[`code-${question.id}`]);
     }
-  }, [question.id, player_id]);
+  }, [question.id, token]);
 
   const handleEditorChange = (value: string | undefined) => {
       if (value) {
           setCode(value);
-          const roomData = JSON.parse(localStorage.getItem(`room-${player_id}`) || '{}');
+          const roomData = JSON.parse(localStorage.getItem(`room-${token}`) || '{}');
           roomData[`code-${question.id}`] = value;
-          localStorage.setItem(`room-${player_id}`, JSON.stringify(roomData));
+          localStorage.setItem(`room-${token}`, JSON.stringify(roomData));
       }
   };
 
   const handleSubmit = () => {
-      const roomData = JSON.parse(localStorage.getItem(`room-${player_id}`) || '{}');
+      const roomData = JSON.parse(localStorage.getItem(`room-${token}`) || '{}');
       delete roomData[`code-${question.id}`];
-      localStorage.setItem(`room-${player_id}`, JSON.stringify(roomData));
+      localStorage.setItem(`room-${token}`, JSON.stringify(roomData));
       
       handleSubmitQuestion(code);
   };
