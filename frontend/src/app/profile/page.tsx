@@ -6,14 +6,17 @@ import { useAuth } from "../../../contexts/auth_context";
 import RoomService from "../../../services/room.service";
 import { ApiResponse } from "../../../services/api_response";
 import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { LoadingState } from "../../../components/loading_state";
 
 export default function Profile() {
   const router = useRouter();
-
+  const [isLoading, setIsLoading] = useState(false);
   const {token} = useAuth();
 
   async function handleStartGame(){
     try{
+      setIsLoading(true);
       let template_id = 1;
       let response: ApiResponse<any> | null = await RoomService.createRoom({template_id, token});
       
@@ -30,11 +33,15 @@ export default function Profile() {
 
   return (
     <RequireAuth>
-      <div className={styles.container}>
+      {isLoading? (
+        <LoadingState text=""></LoadingState>
+      ):(
+        <div className={styles.container}>
           <Button onClick={handleStartGame}>
               Start a Game
           </Button>
-      </div>
+        </div>
+      )}
     </RequireAuth>
   );
 }

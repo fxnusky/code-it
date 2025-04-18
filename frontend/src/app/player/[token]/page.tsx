@@ -12,6 +12,7 @@ import { Question } from '../../../../services/ws_connection.service';
 import { Button } from "@/components/ui/button"
 import { PlayerQuestion } from '../../../../components/player_question';
 import ExecuteService from '../../../../services/execute.service';
+import { LoadingState } from '../../../../components/loading_state';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
@@ -112,7 +113,7 @@ export default function Profile() {
                 <PlayerQuestion token={token} question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
             )}
             {state == "question_submitted" &&  (
-                <p>Question submitted!</p>
+                    <LoadingState text='Question submitted! Wait for the time to end.'></LoadingState>
             )}
             {state == "question_results" &&  (
                 <p>Question results</p>

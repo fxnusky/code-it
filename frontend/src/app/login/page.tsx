@@ -5,10 +5,12 @@ import styles from '../page.module.css';
 import { useAuth } from '../../../contexts/auth_context';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button"
+import { LoadingState } from '../../../components/loading_state';
 
 export default function LoginPage() { 
   const [redirectTo, setRedirectTo] = useState<string>("/join-room");
   const { isAuthenticated, email, logout } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   
   useEffect(() => {
@@ -19,9 +21,14 @@ export default function LoginPage() {
     }
   }, []);
 
+
+
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
+      {isLoading? (
+        <LoadingState></LoadingState>
+      ):(
+        <div className={styles.card}>
         <div className={styles.cardContent}>
           {isAuthenticated ? (
             <>
@@ -54,12 +61,15 @@ export default function LoginPage() {
               <div className={styles.buttonContainer}>
                 <ProtectedButton 
                   redirectTo={redirectTo} 
+                  setIsLoading={setIsLoading}
                 />
               </div>
             </>
           )}
         </div>
       </div>
+      )}
+      
     </div>
   );
 }

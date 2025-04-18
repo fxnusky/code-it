@@ -8,10 +8,12 @@ const GOOGLE_CLIENT_ID = "195860473074-e880uq1l37obetripidmk7odc2kcb184.apps.goo
 
 type ProtectedButtonProps = {
   redirectTo: string;
+  setIsLoading: (isLoading: boolean) => void;
 };
 
 export const ProtectedButton = ({
   redirectTo,
+  setIsLoading
 }: ProtectedButtonProps) => {
   const { login } = useAuth();
   const router = useRouter();
@@ -36,10 +38,12 @@ export const ProtectedButton = ({
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <GoogleLogin
-        onSuccess={handleSuccess}
-        onError={handleError}
-      />
+      <div onClick={() => setIsLoading(true)}>
+        <GoogleLogin
+          onSuccess={handleSuccess}
+          onError={handleError}
+        />
+      </div>
     </GoogleOAuthProvider>
   );
 };
