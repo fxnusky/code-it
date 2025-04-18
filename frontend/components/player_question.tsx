@@ -13,11 +13,13 @@ import ExecuteService from '../services/execute.service';
 
 
 type PlayerQuestionProps = {
+  player_id: number;
   question: Question;
   handleSubmitQuestion: (code: string) => void;
 };
 
 export const PlayerQuestion = ({
+    player_id,
     question,
     handleSubmitQuestion
 }: PlayerQuestionProps) => {
@@ -33,22 +35,28 @@ export const PlayerQuestion = ({
   }, [question]);
 
   useEffect(() => {
-    const savedCode = localStorage.getItem(`code-${question.id}`);
-    if (savedCode) {
-      setCode(savedCode)
-    };
-  }, [question.id]);
-  
-  const handleEditorChange = (value: string | undefined) => {
-    if (value) {
-      setCode(value);
-      localStorage.setItem(`code-${question.id}`, value); 
+    const roomData = JSON.parse(localStorage.getItem(`room-${player_id}`) || '{}');
+    
+    if (roomData[`code-${question.id}`]) {
+      setCode(roomData[`code-${question.id}`]);
     }
+  }, [question.id, player_id]);
+
+  const handleEditorChange = (value: string | undefined) => {
+      if (value) {
+          setCode(value);
+          const roomData = JSON.parse(localStorage.getItem(`room-${player_id}`) || '{}');
+          roomData[`code-${question.id}`] = value;
+          localStorage.setItem(`room-${player_id}`, JSON.stringify(roomData));
+      }
   };
-  
+
   const handleSubmit = () => {
-    localStorage.removeItem(`code-${question.id}`); 
-    handleSubmitQuestion(code);
+      const roomData = JSON.parse(localStorage.getItem(`room-${player_id}`) || '{}');
+      delete roomData[`code-${question.id}`];
+      localStorage.setItem(`room-${player_id}`, JSON.stringify(roomData));
+      
+      handleSubmitQuestion(code);
   };
 
   async function runCode() {

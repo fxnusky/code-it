@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 
 type ManagerQuestionProps = {
+  room_code: string;
   question: Question;
   num_players: number;
   num_questions: number;
@@ -14,6 +15,7 @@ type ManagerQuestionProps = {
 };
 
 export const ManagerQuestion = ({
+    room_code,
     question,
     num_players,
     num_questions,
@@ -22,19 +24,25 @@ export const ManagerQuestion = ({
     handleEndQuestion,
 }: ManagerQuestionProps) => {
   const [timeLeft, setTimeLeft] = useState(() => {
-    const startTime = localStorage.getItem(`time_start`);
-    if (!startTime) return question.time_limit; 
+    const roomData = JSON.parse(localStorage.getItem(`room-${room_code}`) || '{}');
     
-    const elapsedSeconds = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+    if (!roomData.time_start) return question.time_limit;
+    
+    const elapsedSeconds = Math.floor((Date.now() - parseInt(roomData.time_start)) / 1000);
     const remainingTime = Math.max(0, question.time_limit - elapsedSeconds);
     return remainingTime;
-  });
+});
 
-  useEffect(() => {
-    if (!localStorage.getItem(`time_start`)) {
-      localStorage.setItem(`time_start`, Date.now().toString());
+useEffect(() => {  
+    const roomKey = `room-${room_code}`;
+    
+    const roomData = JSON.parse(localStorage.getItem(`room-${room_code}`) || '{}');
+    
+    if (!roomData.time_start) {
+        roomData.time_start = Date.now().toString();
+        localStorage.setItem(roomKey, JSON.stringify(roomData));
     }
-  }, [question.id]);
+}, [question.id]);
 
   const formatTime = (seconds: number): string => {
     if (seconds >= 3600) {
