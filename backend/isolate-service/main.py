@@ -26,7 +26,7 @@ async def execute_code(request: CodeExecutionRequest):
     try:
         # Step 1: Initialize the isolate box
         init_result = subprocess.run(
-            ["isolate", "--init", "--box-id=60"],
+            ["isolate", "--init"],
             capture_output=True,
             text=True
         )
@@ -41,6 +41,7 @@ async def execute_code(request: CodeExecutionRequest):
 
         # Step 2: Prepare the code file
         box_dir = Path(box_path) / "box"
+        box_number = box_path.split("/")[-1]
         os.chdir(box_dir)
         
         file_path = box_dir / "script.py"
@@ -59,7 +60,7 @@ async def execute_code(request: CodeExecutionRequest):
             f"--time={request.time_limit}",
             f"--mem={request.memory_limit}",
             "--meta=meta.txt",
-            f"--box-id=60",
+            f"--box-id={box_number}",
             "--dir=/usr/bin/",
             "--dir=/usr/lib/",
             "--",
