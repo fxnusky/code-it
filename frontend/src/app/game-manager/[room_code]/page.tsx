@@ -76,11 +76,15 @@ export default function Manager() {
     
   };
 
-  const handleEndQuestion = () =>{
-    // Send question id
-    localStorage.removeItem(`time_start`);
-    connectionService.sendMessage({"action": "end_question"})
-  }
+  const handleEndQuestion = () => {
+    const roomData = JSON.parse(localStorage.getItem(`room-${room_code}`) || '{}');
+    
+    if (roomData.time_start) {
+        delete roomData.time_start;
+        localStorage.setItem(`room-${room_code}`, JSON.stringify(roomData));
+    }
+    connectionService.sendMessage({"action": "end_question"});
+  };
   const handleNextQuestion = () =>{
     setSubmissions(0);
     let nextIndex = questionIndex +1;
@@ -123,7 +127,7 @@ export default function Manager() {
         <ManagerRoom room_code={room_code} players={players} handleStartGame={handleStartGame}></ManagerRoom>
       )}
       {state == "question" && question && (
-        <ManagerQuestion question={question} submissions={submissions} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
+        <ManagerQuestion room_code={room_code} question={question} submissions={submissions} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
       {state == "question_results" &&  (
         <Button onClick={handleShowRanking}>Show ranking</Button>
