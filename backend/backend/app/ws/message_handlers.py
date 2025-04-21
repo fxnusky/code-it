@@ -3,7 +3,6 @@ from ..services.game_connection_service import GameConnectionService
 from ..services.question_service import QuestionService
 import logging
 from sqlalchemy.orm import Session
-from ..database import get_db
 
 
 logging.basicConfig(

@@ -4,14 +4,14 @@ from sqlalchemy.orm import Session
 from ..repositories.room_repository import RoomRepository
 class GameConnectionService:
     def __init__(self):
-        self.rooms: Dict[str, Dict[str, Optional[WebSocket] | Set[WebSocket]]] = {}
+        self.rooms: Dict[str, Dict[str, Optional[WebSocket] | Dict[str, WebSocket]]] = {}
         self.state: str = "room_opened"
         self.current_question_id: str = None 
     
     def set_room_manager(self, room_code: str, manager: WebSocket):
         try: 
             if room_code not in self.rooms:
-                self.rooms[room_code] = {"manager": manager, "players": set()}
+                self.rooms[room_code] = {"manager": manager, "players": {}}
             else:
                 self.rooms[room_code]["manager"] = manager
         except HTTPException:
@@ -26,13 +26,13 @@ class GameConnectionService:
         except HTTPException:
             raise
 
-    async def connect_player(self, websocket: WebSocket, room_code: str):
+    async def connect_player(self, websocket: WebSocket, room_code: str, player_id: int):
         await websocket.accept()
-        self.rooms[room_code]["players"].add(websocket)
+        self.rooms[room_code]["players"][player_id] = websocket
 
-    async def disconnect_player(self, websocket: WebSocket, room_code: str):
-        if room_code in self.rooms:
-            self.rooms[room_code]["players"].discard(websocket)
+    async def disconnect_player(self, websocket: WebSocket, room_code: str, player_id: int):
+        if room_code in self.rooms and player_id in self.rooms[room_code]["players"]:
+            del self.rooms[room_code]["players"][player_id]
         await websocket.close()
 
     async def disconnect_manager(self, room_code: str):
@@ -47,7 +47,7 @@ class GameConnectionService:
         await self.rooms[room_code]["manager"].send_json(message)
 
     async def broadcast_players(self, content: dict, room_code: str):
-        for connection in self.rooms[room_code]["players"]:
+        for connection in self.rooms[room_code]["players"].values():
             await connection.send_json(content)
 
     async def set_state(self, new_state: str, room_code: str, db: Session):

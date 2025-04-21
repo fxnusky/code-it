@@ -28,8 +28,8 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
     try:
         player_repository = PlayerRepository(db)
         player_service = PlayerService(player_repository)
-        valid_token = player_service.verify_token(token, room_code)
-        if not valid_token:
+        player_id = player_service.verify_token(token, room_code)
+        if not player_id:
             await websocket.close()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -40,7 +40,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
             question_repository = QuestionRepository(db)
             question_service = QuestionService(question_repository)
             question = question_service.get_question_by_id(game_connection_service.current_question_id)
-        await game_connection_service.connect_player(websocket, room_code)
+        await game_connection_service.connect_player(websocket, room_code, player_id)
         await game_connection_service.send_message({
             "action": "status", 
             "state": game_connection_service.state, 
@@ -58,11 +58,11 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 await handle_player_message(data, room_code, websocket, game_connection_service)
                 
             except WebSocketDisconnect:
-                await game_connection_service.disconnect_player(websocket, room_code)
+                await game_connection_service.disconnect_player(websocket, room_code, player_id)
                 await game_connection_service.send_manager_message({"action": "player_disconnected"})
 
     except WebSocketDisconnect:
-        await game_connection_service.disconnect_player(websocket, room_code)
+        await game_connection_service.disconnect_player(websocket, room_code, player_id)
         await game_connection_service.send_manager_message({"action": "player_disconnected"})
         
         
