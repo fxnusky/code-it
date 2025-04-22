@@ -81,7 +81,7 @@ async def execute_code(request: CodeExecutionRequest):
         
 
         # Step 5: Clean up
-        subprocess.run(["isolate", "--cleanup", "--box-id=60"], check=True)
+        subprocess.run(["isolate", "--cleanup", f"--box-id={box_number}"], check=True)
 
         return {
             "status":"success",

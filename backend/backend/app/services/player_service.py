@@ -16,7 +16,7 @@ class PlayerService:
         try:
             player = self.player_repository.get_player_by_token(token)
             if player and player.room_code == room_code:
-                return True
+                return player.id
             return False
         except HTTPException:
             raise

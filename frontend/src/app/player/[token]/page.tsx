@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button"
 import { PlayerQuestion } from '../../../../components/player_question';
 import ExecuteService from '../../../../services/execute.service';
 import { LoadingState } from '../../../../components/loading_state';
+import { PlayerResult } from '../../../../services/ws_connection.service';
+import { PlayerResults } from '../../../../components/player_results';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
@@ -20,6 +22,7 @@ export default function Profile() {
     const [state, setState] = useState('')
     const [isManagerConnected, setIsManagerConnected] = useState(true);
     const [question, setQuestion] = useState<Question | null>(null);
+    const [results, setResults] = useState<PlayerResult | null>(null);
     const connectionService = useWSConnection();
     const router = useRouter();
     const { token }: {token: string} = useParams(); 
@@ -64,6 +67,9 @@ export default function Profile() {
             if (message.question){
                 setQuestion(message.question);
             }
+            if (message.question_results){
+                setResults(message.question_results)
+            }
         }else if (message.action === "question"){
             if (message.question){
                 setQuestion(message.question);
@@ -73,6 +79,9 @@ export default function Profile() {
             setState(message.action);
       
         }else if (message.action === "question_results"){
+            if (message.question_results){
+                setResults(message.question_results)
+            }
             setState(message.action);
     
         }else if (message.action === "ranking"){
@@ -90,7 +99,6 @@ export default function Profile() {
       };
     
     async function handleSubmitQuestion(code: string) {
-        console.log(question?.id, question?.main_function)
         if (question?.id && question?.main_function){
             let question_id = question?.id
             let main_function = question?.main_function
@@ -113,10 +121,10 @@ export default function Profile() {
                 <PlayerQuestion token={token} question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
             )}
             {state == "question_submitted" &&  (
-                    <LoadingState text='Question submitted! Wait for the time to end.'></LoadingState>
+                <LoadingState text='Question submitted! Wait for the time to end.'></LoadingState>
             )}
-            {state == "question_results" &&  (
-                <p>Question results</p>
+            {state == "question_results" && results && (
+                <PlayerResults nickname={nickname} results={results}></PlayerResults>
             )}
             {state == "ranking" &&  (
                 <p>Ranking</p>

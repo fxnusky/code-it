@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from '../../page.module.css';
 import { useWSConnection } from '../../../../contexts/ws_connection_context';
 import { useRouter } from 'next/navigation';
-import { GameMessage } from '../../../../services/ws_connection.service';
+import { GameMessage, ManagerResult } from '../../../../services/ws_connection.service';
 import { ManagerRoom } from '../../../../components/manager_room';
 import PlayerService from '../../../../services/player.service';
 import { useParams } from 'next/navigation';
@@ -11,6 +11,7 @@ import { useAuth } from '../../../../contexts/auth_context';
 import { Question } from '../../../../services/ws_connection.service';
 import { ManagerQuestion } from '../../../../components/manager_question';
 import { Button } from "@/components/ui/button"
+import { ManagerResults } from '../../../../components/manager_results';
 
 export interface Player {
   id: string;
@@ -23,6 +24,8 @@ export default function Manager() {
   const [questionIds, setQuestionIds] = useState<number[]>([]);
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [results, setResults] = useState<ManagerResult[] | null>(null);
+  const questionIndexRef = useRef(questionIndex);
   const [submissions, setSubmissions] = useState(0);
   const connectionService = useWSConnection();
   const router = useRouter();
@@ -36,6 +39,10 @@ export default function Manager() {
     }
   }, []); 
 
+  const updateQuestionIndex = (newIndex: number) =>{
+    setQuestionIndex(newIndex);
+    questionIndexRef.current = newIndex;
+  }
   
   const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
@@ -50,6 +57,9 @@ export default function Manager() {
       setSubmissions(prevSubmissions => prevSubmissions + 1);
     }else if (message.action === "question_results"){
       setState(message.action);
+      if (message.stats){
+        setResults(message.stats)
+      }
       // recieve question results and set it
     }else if (message.action === "ranking"){
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
@@ -65,10 +75,16 @@ export default function Manager() {
         setPlayers(message.players)
       }
       if(message.current_question_id && message.question_ids){
-        setQuestionIndex(message.question_ids.indexOf(message.current_question_id))
+        updateQuestionIndex(message.question_ids.indexOf(message.current_question_id))
       }
       if (message.question){
         setQuestion(message.question);
+      }
+      if (message.submissions){
+        setSubmissions(message.submissions)
+      }
+      if (message.stats){
+        setResults(message.stats)
       }
     }else{
       console.error("Unknown message from server ", message)
@@ -83,14 +99,13 @@ export default function Manager() {
         delete roomData.time_start;
         localStorage.setItem(`room-${room_code}`, JSON.stringify(roomData));
     }
-    connectionService.sendMessage({"action": "end_question"});
+    connectionService.sendMessage({"action": "end_question", "question_id": questionIds[questionIndexRef.current]});
   };
   const handleNextQuestion = () =>{
     setSubmissions(0);
     let nextIndex = questionIndex +1;
     if (nextIndex < questionIds.length){
-      setQuestionIndex(nextIndex)
-      // Send question id
+      updateQuestionIndex(nextIndex)
       connectionService.sendMessage({"action": "next_question", "question_id": questionIds[nextIndex]})
     }else{
       setState("game_ended");
@@ -129,8 +144,8 @@ export default function Manager() {
       {state == "question" && question && (
         <ManagerQuestion room_code={room_code} question={question} submissions={submissions} num_players={players.length} num_questions={questionIds.length} question_index={questionIndex} handleEndQuestion={handleEndQuestion}></ManagerQuestion>
       )}
-      {state == "question_results" &&  (
-        <Button onClick={handleShowRanking}>Show ranking</Button>
+      {state == "question_results" && results && (
+        <ManagerResults results={results} handleShowRanking={handleShowRanking}></ManagerResults>
       )}
       {state == "ranking" &&  (
         <Button onClick={handleNextQuestion}>Next question</Button>

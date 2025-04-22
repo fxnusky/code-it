@@ -18,7 +18,34 @@ class SubmissionService:
             self.submission_repository.update_submission_points(submission_id, new_points)
         except HTTPException: 
             raise
-    
-   
 
-        
+    def get_question_results_by_player(self, player_id: int, question_id: int):
+        try:
+            submission = self.submission_repository.get_submission(player_id, question_id)
+            total_points = self.submission_repository.get_total_points_by_player_id(player_id)
+            earned_points = 0
+            if submission:
+                earned_points = submission.earned_points
+            return {
+                    "total_points": total_points,
+                    "question_points": earned_points
+                }
+        except HTTPException: 
+            raise
+    def get_question_results_stats(self, room_code: str, question_id: int):
+        try:
+            return self.submission_repository.get_question_results_stats(room_code, question_id)
+        except HTTPException: 
+            raise
+
+    def get_submission_by_question_player(self, player_id: str, question_id: int):
+        try:
+            return self.submission_repository.get_submission(player_id, question_id)
+        except HTTPException: 
+            raise
+
+    def get_submissions_by_question_room(self, room_code: str, question_id: int):
+        try:
+            return self.submission_repository.get_submissions_by_question_room(room_code, question_id)
+        except HTTPException: 
+            raise

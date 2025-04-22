@@ -71,8 +71,6 @@ useEffect(() => {
 
     return () => clearInterval(timer);
   }, [timeLeft, handleEndQuestion]);
-
-
   
   return (
     <div className={styles.question_container}>

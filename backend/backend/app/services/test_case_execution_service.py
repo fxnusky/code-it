@@ -18,4 +18,11 @@ class TestCaseExecutionService:
             return self.test_case_execution_repository.create_test_case_execution(submission_id, case_id, obtained_output, correct) 
         except HTTPException:
             raise
+
+    def get_question_results_by_player(self, player_id: int, question_id: int):
+        try:
+            return self.test_case_execution_repository.get_test_case_executions(player_id, question_id)
+        except HTTPException:
+            raise
+        
     

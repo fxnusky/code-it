@@ -1,0 +1,104 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-width: -webkit-fill-available;
+    justify-content: space-between;
+}
+
+.playersWall {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    overflow-y: auto;
+    max-width: 100%;
+    padding: 20px;
+    height: 100vh;
+    justify-content: space-between;
+    margin-top: 50px;
+    margin-inline: 10%;
+}
+
+.resultContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 40%;
+    min-width: fit-content;
+    margin-inline: 20px;
+    margin-block: 20px;
+    height: 20%;
+    min-height: fit-content;
+}
+
+.resultLabel {
+    text-align: center;
+    font-weight: bold;
+    z-index: 2;
+    position: relative;
+    font-size: xx-large;
+}
+
+.percentageText {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.resultBarBackground {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    align-content: center;
+    height: -webkit-fill-available;
+}
+
+.earnedPoints {
+    width: 50%;
+    min-width: fit-content;
+    background-color: #f19c44;
+    border-radius: 10px;
+    position: relative;
+    align-content: center;
+    height: fit-content;
+    align-self: center;
+    margin-top: 2%;
+}
+
+.headerText {
+    font-size: x-large;
+    margin-inline: 5%;
+}
+
+.resultBarFill {
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: width 0.3s ease;
+}
+
+.green {
+    background-color: #83e277;
+}
+
+.red {
+    background-color: #f95d5d;
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #00001a;
+    color: white;
+}
