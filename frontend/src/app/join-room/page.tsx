@@ -47,7 +47,6 @@ export default function JoinGame() {
       const connect = async () => {
         try {
           let response = await PlayerService.createPlayer({nickname, roomCode})
-          console.log(response);
           if (response?.status == "success"){
             router.push(`/player/${response.data["token"]}`);
           }else {

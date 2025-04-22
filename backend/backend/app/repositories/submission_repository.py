@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from app.models import Submission
+from app.models import Submission, TestCaseExecution, Player, TestCase
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
+from sqlalchemy import func, case
 
 class SubmissionRepository:
     def __init__(self, db: Session):
@@ -47,4 +48,92 @@ class SubmissionRepository:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unexpected error while updating the earned points"
+            )
+    
+    def get_submission(self, player_id: int, question_id: int):
+        try:
+            return self.db.query(Submission).filter(Submission.player_id == player_id, Submission.question_id == question_id).first()
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error while retrieving the submission"
+            )
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
+            )
+    
+    def get_total_points_by_player_id(self, player_id: int):
+        try:
+            points = ( self.db.query(func.sum(Submission.earned_points))\
+                     .filter(Submission.player_id == player_id)\
+                     .scalar()
+            )
+            if points:
+                return points
+            return 0
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error while retrieving the submission"
+            )
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
+            )
+    
+    def get_question_results_stats(self, room_code: str, question_id: int):
+        try:
+            players_in_room = self.db.query(Player.id).where(Player.room_code == room_code).scalar_subquery()
+            num_players_in_room =  self.db.query(Player.id).where(Player.room_code == room_code).count()
+
+            results = (
+                self.db.query(
+                    TestCaseExecution.case_id,
+                    (func.sum(
+                        case(
+                            (TestCaseExecution.correct == True, 1.0),
+                            else_=0.0
+                        )
+                    ) * 100).label("percentage_correct")
+                )
+                .join(Submission, TestCaseExecution.submission_id == Submission.submission_id)
+                .filter(
+                    Submission.question_id == question_id,
+                    Submission.player_id.in_(players_in_room)
+                )
+                .group_by(TestCaseExecution.case_id)
+                .order_by(TestCaseExecution.case_id)
+                .all()
+            )
+            if results and num_players_in_room:
+                return [{"case_id": int(row.case_id), "percentage_correct": float(row.percentage_correct/num_players_in_room)} for row in results]
+            else:
+                test_cases =  (
+                    self.db.query(TestCase)
+                    .filter(
+                        TestCase.question_id == question_id
+                    )
+                    .order_by(TestCase.case_id)
+                    .all()
+                )
+                return [{
+                    "case_id": tc.case_id,
+                    "correct": False
+                } for tc in test_cases]
+
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error while retrieving the question stats"
+            )
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
             )

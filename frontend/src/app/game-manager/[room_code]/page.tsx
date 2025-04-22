@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from '../../page.module.css';
 import { useWSConnection } from '../../../../contexts/ws_connection_context';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ export default function Manager() {
   const [questionIds, setQuestionIds] = useState<number[]>([]);
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const questionIndexRef = useRef(questionIndex);
   const [submissions, setSubmissions] = useState(0);
   const connectionService = useWSConnection();
   const router = useRouter();
@@ -36,6 +37,10 @@ export default function Manager() {
     }
   }, []); 
 
+  const updateQuestionIndex = (newIndex: number) =>{
+    setQuestionIndex(newIndex);
+    questionIndexRef.current = newIndex;
+  }
   
   const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
@@ -65,7 +70,7 @@ export default function Manager() {
         setPlayers(message.players)
       }
       if(message.current_question_id && message.question_ids){
-        setQuestionIndex(message.question_ids.indexOf(message.current_question_id))
+        updateQuestionIndex(message.question_ids.indexOf(message.current_question_id))
       }
       if (message.question){
         setQuestion(message.question);
@@ -83,14 +88,13 @@ export default function Manager() {
         delete roomData.time_start;
         localStorage.setItem(`room-${room_code}`, JSON.stringify(roomData));
     }
-    connectionService.sendMessage({"action": "end_question"});
+    connectionService.sendMessage({"action": "end_question", "question_id": questionIds[questionIndexRef.current]});
   };
   const handleNextQuestion = () =>{
     setSubmissions(0);
     let nextIndex = questionIndex +1;
     if (nextIndex < questionIds.length){
-      setQuestionIndex(nextIndex)
-      // Send question id
+      updateQuestionIndex(nextIndex)
       connectionService.sendMessage({"action": "next_question", "question_id": questionIds[nextIndex]})
     }else{
       setState("game_ended");

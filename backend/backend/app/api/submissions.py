@@ -12,6 +12,15 @@ from ..repositories.player_repository import PlayerRepository
 from sqlalchemy.orm import Session
 from ..database import get_db
 import json
+import math
+from ast import literal_eval
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -40,7 +49,7 @@ async def submit_python(request: CodeSubmissionRequest, db: Session = Depends(ge
             )
         test_case_repository = TestCaseRepository(db)
         test_case_service = TestCaseService(test_case_repository)
-        test_cases = test_case_service.get_test_cases_by_question_id(player_id)
+        test_cases = test_case_service.get_test_cases_by_question_id(request.question_id)
 
         if not test_cases:
             raise HTTPException(
@@ -51,30 +60,30 @@ async def submit_python(request: CodeSubmissionRequest, db: Session = Depends(ge
         test_case_execution_repository = TestCaseExecutionRepository(db)
         test_case_execution_service = TestCaseExecutionService(test_case_execution_repository)
         for test_case in test_cases:
-            test_code = f"""
-                import sys
-                import json
-                from io import StringIO
+            test_code = f"""import sys
+import json
+from io import StringIO
 
-                # Redirect stdout to suppress prints
-                old_stdout = sys.stdout
-                sys.stdout = StringIO()
+# Redirect stdout to suppress prints
+old_stdout = sys.stdout
+sys.stdout = StringIO()
 
-                {request.code}
+{request.code}
 
-                try:
-                    # Call the main function with test case input
-                    result = {request.main_function}({test_case.input})
-                    
-                    # Restore stdout
-                    sys.stdout = old_stdout
-                    
-                    # Return only the result as JSON
-                    print(json.dumps({{"result": result}}))
-                except Exception as e:
-                    sys.stdout = old_stdout
-                    print(json.dumps({{"error": str(e)}}))
-                """
+try:
+    # Call the main function with test case input
+    result = {request.main_function}({test_case.input})
+    
+    # Restore stdout
+    sys.stdout = old_stdout
+    
+    # Return only the result as JSON
+    print(json.dumps({{"result": result}}))
+except Exception as e:
+    sys.stdout = old_stdout
+    print(json.dumps({{"error": str(e)}}))
+"""
+            logger.info(f"{test_code}")
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     "http://isolate-service:8001/execute/python",
@@ -87,15 +96,26 @@ async def submit_python(request: CodeSubmissionRequest, db: Session = Depends(ge
                 )
                 response.raise_for_status()
                 result = response.json()
+                logger.info(f"{str(result)}")
                 submission_id = submission["id"]
                 case_id = test_case.case_id
                 try:
                     if result["status"] == "success":
-                        obtained_output = result["data"]["output"]
-                        correct = result == test_case.expected_output
+                        obtained_output = json.loads(result["data"]["output"].strip())["result"]
+                        
+                        try:
+                            expected_evaluated = literal_eval(test_case.expected_output)
+                        except (ValueError, SyntaxError):
+                            expected_evaluated = test_case.expected_output 
+                        
+                        if isinstance(expected_evaluated, (int, float)) and isinstance(obtained_output, (int, float)):
+                            correct = math.isclose(obtained_output, expected_evaluated, rel_tol=1e-9)
+                        else:
+                            correct = obtained_output == expected_evaluated
                     else:
                         obtained_output = result["data"]["error"]
                         correct = False
+
                 except json.JSONDecodeError:
                     obtained_output = "Invalid output format"
                     correct = False

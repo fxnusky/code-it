@@ -90,7 +90,6 @@ export default function Profile() {
       };
     
     async function handleSubmitQuestion(code: string) {
-        console.log(question?.id, question?.main_function)
         if (question?.id && question?.main_function){
             let question_id = question?.id
             let main_function = question?.main_function
@@ -113,7 +112,7 @@ export default function Profile() {
                 <PlayerQuestion token={token} question={question} handleSubmitQuestion={handleSubmitQuestion}></PlayerQuestion>
             )}
             {state == "question_submitted" &&  (
-                    <LoadingState text='Question submitted! Wait for the time to end.'></LoadingState>
+                <LoadingState text='Question submitted! Wait for the time to end.'></LoadingState>
             )}
             {state == "question_results" &&  (
                 <p>Question results</p>
