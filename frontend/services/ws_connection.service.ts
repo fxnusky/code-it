@@ -15,6 +15,8 @@ export type GameMessage = {
   manager_connected?: boolean,
   question?: Question,
   submissions?: number
+  question_results?: PlayerResult
+  stats?: ManagerResult[] 
 };
 
 export interface Question {
@@ -23,6 +25,19 @@ export interface Question {
   time_limit: number,
   code_starter: string,
   main_function: string
+}
+
+export interface ManagerResult {
+  case_id: number,
+  percentage_correct?: number,
+  test_case_executions?: Object[],
+  question_points?: number,
+  total_points?: number
+}
+export interface PlayerResult {
+  test_case_executions: {case_id: number, correct: boolean}[],
+  question_points: number,
+  total_points: number
 }
 
 class WsConnectionService {
