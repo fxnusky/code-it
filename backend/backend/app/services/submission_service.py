@@ -44,4 +44,8 @@ class SubmissionService:
         except HTTPException: 
             raise
 
-        
+    def get_submissions_by_question_room(self, room_code: str, question_id: int):
+        try:
+            return self.submission_repository.get_submissions_by_question_room(room_code, question_id)
+        except HTTPException: 
+            raise

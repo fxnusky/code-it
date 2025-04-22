@@ -12,8 +12,9 @@ export type GameMessage = {
   players?: Player[],
   current_question_id?: number,
   nickname?: string,
-  manager_connected?: boolean
+  manager_connected?: boolean,
   question?: Question,
+  submissions?: number
 };
 
 export interface Question {

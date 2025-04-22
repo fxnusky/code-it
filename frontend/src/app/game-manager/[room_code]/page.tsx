@@ -75,6 +75,9 @@ export default function Manager() {
       if (message.question){
         setQuestion(message.question);
       }
+      if (message.submissions){
+        setSubmissions(message.submissions)
+      }
     }else{
       console.error("Unknown message from server ", message)
     }

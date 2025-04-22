@@ -114,16 +114,20 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         question_service = QuestionService(question_repository)
         question_ids = question_service.get_sorted_question_ids(room_code)
 
+        submission_repository = SubmissionRepository(db)
+        submission_service = SubmissionService(submission_repository)
+
         question = None
+        submissions = None
         if game_connection_service.state == "question" and game_connection_service.current_question_id:
+            submissions = submission_service.get_submissions_by_question_room(room_code, game_connection_service.current_question_id)
             question = question_service.get_question_by_id(game_connection_service.current_question_id)
         
         player_repository = PlayerRepository(db)
         player_service = PlayerService(player_repository)
         players = player_service.get_players_by_room_code(room_code)
 
-        submission_repository = SubmissionRepository(db)
-        submission_service = SubmissionService(submission_repository)
+        
         result_stats = {}
         if game_connection_service.current_question_id and game_connection_service.state == "question_results":
             result_stats = submission_service.get_question_results_stats(room_code, game_connection_service.current_question_id)

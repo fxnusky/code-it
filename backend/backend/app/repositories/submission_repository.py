@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.models import Submission, TestCaseExecution, Player, TestCase
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
-from sqlalchemy import func, case
+from sqlalchemy import func, case, select
 
 class SubmissionRepository:
     def __init__(self, db: Session):
@@ -130,6 +130,29 @@ class SubmissionRepository:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error while retrieving the question stats"
+            )
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
+            )
+    
+    def get_submissions_by_question_room(self, room_code: str, question_id: int):
+        try:
+            stmt = (
+                select(func.count(Submission.submission_id))
+                .join(Player, Submission.player_id == Player.id)
+                .where(
+                    Player.room_code == room_code,
+                    Submission.question_id == question_id
+                )
+            )
+            return self.db.scalar(stmt)
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error while retrieving the amount of submissions"
             )
         except Exception as e:
             self.db.rollback()

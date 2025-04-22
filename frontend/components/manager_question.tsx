@@ -72,7 +72,7 @@ useEffect(() => {
     return () => clearInterval(timer);
   }, [timeLeft, handleEndQuestion]);
 
-
+  console.log(submissions)
   
   return (
     <div className={styles.question_container}>
