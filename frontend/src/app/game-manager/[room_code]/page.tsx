@@ -12,7 +12,7 @@ import { Question } from '../../../../services/ws_connection.service';
 import { ManagerQuestion } from '../../../../components/manager_question';
 import { Button } from "@/components/ui/button"
 import { ManagerResults } from '../../../../components/manager_results';
-
+import { ManagerRanking } from '../../../../components/manager_ranking';
 export interface Player {
   id: string;
   nickname: string;
@@ -27,7 +27,7 @@ export default function Manager() {
   const [results, setResults] = useState<ManagerResult[] | null>(null);
   const questionIndexRef = useRef(questionIndex);
   const [submissions, setSubmissions] = useState(0);
-  const [ranking, setRanking] = useState<{player_id: number} | null>(null);
+  const [ranking, setRanking] = useState<[string, number][] | null>(null);
   const connectionService = useWSConnection();
   const router = useRouter();
   const { room_code }: {room_code: string} = useParams(); 
@@ -64,7 +64,10 @@ export default function Manager() {
     }else if (message.action === "ranking"){
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
       if (message.ranking){
-        setRanking(message.ranking)
+        let rankin = Object.entries(message.ranking)
+        .map(([_, player]) => [player.nickname, player.points] as [string, number])
+        .sort((a, b) => b[1] - a[1]);
+        setRanking(rankin)
       }
     }else if (message.action === "status"){
       if(message.state){
@@ -89,7 +92,10 @@ export default function Manager() {
         setResults(message.stats)
       }
       if (message.ranking){
-        setRanking(message.ranking)
+        let rankin = Object.entries(message.ranking)
+        .map(([_, player]) => [player.nickname, player.points] as [string, number])
+        .sort((a, b) => b[1] - a[1]);
+        setRanking(rankin)
       }
     }else{
       console.error("Unknown message from server ", message)
@@ -152,8 +158,8 @@ export default function Manager() {
       {state == "question_results" && results && (
         <ManagerResults results={results} handleShowRanking={handleShowRanking}></ManagerResults>
       )}
-      {state == "ranking" &&  (
-        <Button onClick={handleNextQuestion}>Next question</Button>
+      {state == "ranking" && ranking &&(
+        <ManagerRanking ranking={ranking} handleNextQuestion={handleNextQuestion}></ManagerRanking>
       )}
       {state == "game_ended" &&  (
         <Button onClick={() => {router.push("/profile")}}>Close</Button>

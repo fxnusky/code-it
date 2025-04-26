@@ -41,17 +41,17 @@ async def handle_manager_message(data: dict, room_code: str, game_connection_ser
             }
             await game_connection_service.send_message({"action": "question_results", "question_results": question_results}, connection)
     elif data["action"] == "show_ranking":
-        player_points = submission_service.get_total_points_players(room_code)
+        players_points = submission_service.get_total_points_players(room_code)
         await game_connection_service.set_state("ranking", room_code, db)
-        await game_connection_service.send_manager_message({"action": "ranking", "ranking": player_points}, room_code)
-        for player_id, points in player_points.items():
-            await game_connection_service.send_message({"action": "ranking", "points": points}, game_connection_service.rooms[room_code]["players"][player_id])
+        await game_connection_service.send_manager_message({"action": "ranking", "ranking": players_points}, room_code)
+        for player_id, info in players_points.items():
+            await game_connection_service.send_message({"action": "ranking", "points": info["points"]}, game_connection_service.rooms[room_code]["players"][player_id])
     elif data["action"] == "end_game":
-        player_points = submission_service.get_total_points_players(room_code)
+        players_points = submission_service.get_total_points_players(room_code)
         await game_connection_service.set_state("game_ended", room_code, db)
-        await game_connection_service.send_manager_message({"action": "ranking", "ranking": player_points}, room_code)
-        for player_id, points in player_points.items():
-            await game_connection_service.send_message({"action": "game_ended", "points": points}, game_connection_service.rooms[room_code]["players"][player_id])        
+        await game_connection_service.send_manager_message({"action": "ranking", "ranking": players_points}, room_code)
+        for player_id, info in players_points.items():
+            await game_connection_service.send_message({"action": "game_ended", "points": info["points"]}, game_connection_service.rooms[room_code]["players"][player_id])        
 
     else:
         logger.info(f"Unknown message from manager {data}")

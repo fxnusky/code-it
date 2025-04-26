@@ -155,20 +155,23 @@ class SubmissionRepository:
         
     def get_total_points_players(self, room_code: str):
         try:
-
             players_points = (
                 self.db.query(
-                    Submission.player_id,
+                    Player.id,
+                    Player.nickname,
                     func.sum(Submission.earned_points).label("total_points")
                 )
-                .filter(Submission.player_id.in_(
-                    self.db.query(Player.id).where(Player.room_code == room_code)
-                ))
-                .group_by(Submission.player_id)
-                .all()
+                .join(Submission, Player.id == Submission.player_id) 
+                .filter(Player.room_code == room_code)
+                .group_by(Player.id, Player.nickname) 
+                .all() 
             )
 
-            return  {player_id: total_points for player_id, total_points in players_points}
+            return {
+                player_id: {"nickname": nickname, "total_points": total_points}
+                for player_id, nickname, total_points in players_points
+            }
+                
         
         except SQLAlchemyError as e:
             raise HTTPException(

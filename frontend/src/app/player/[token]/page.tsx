@@ -15,6 +15,7 @@ import ExecuteService from '../../../../services/execute.service';
 import { LoadingState } from '../../../../components/loading_state';
 import { PlayerResult } from '../../../../services/ws_connection.service';
 import { PlayerResults } from '../../../../components/player_results';
+import { PlayerRanking } from '../../../../components/player_ranking';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
@@ -136,7 +137,7 @@ export default function Profile() {
                 <PlayerResults nickname={nickname} results={results}></PlayerResults>
             )}
             {state == "ranking" &&  (
-                <p>Ranking</p>
+                <PlayerRanking nickname={nickname} points={points}></PlayerRanking>
             )}
             {state == "game_ended" &&  (
                 <Button onClick={() => {router.push("/join-room")}}>Close</Button>
