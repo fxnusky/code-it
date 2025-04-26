@@ -27,6 +27,7 @@ export default function Manager() {
   const [results, setResults] = useState<ManagerResult[] | null>(null);
   const questionIndexRef = useRef(questionIndex);
   const [submissions, setSubmissions] = useState(0);
+  const [ranking, setRanking] = useState<{player_id: number} | null>(null);
   const connectionService = useWSConnection();
   const router = useRouter();
   const { room_code }: {room_code: string} = useParams(); 
@@ -60,10 +61,11 @@ export default function Manager() {
       if (message.stats){
         setResults(message.stats)
       }
-      // recieve question results and set it
     }else if (message.action === "ranking"){
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
-      // recieve ranking and set it
+      if (message.ranking){
+        setRanking(message.ranking)
+      }
     }else if (message.action === "status"){
       if(message.state){
         setState(message.state)
@@ -85,6 +87,9 @@ export default function Manager() {
       }
       if (message.stats){
         setResults(message.stats)
+      }
+      if (message.ranking){
+        setRanking(message.ranking)
       }
     }else{
       console.error("Unknown message from server ", message)
