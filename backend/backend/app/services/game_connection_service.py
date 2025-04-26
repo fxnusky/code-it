@@ -1,12 +1,15 @@
-from typing import Dict, Optional, Set
+from typing import Dict, Optional
 from fastapi import WebSocket,  HTTPException
 from sqlalchemy.orm import Session
 from ..repositories.room_repository import RoomRepository
+from datetime import datetime
 class GameConnectionService:
     def __init__(self):
         self.rooms: Dict[str, Dict[str, Optional[WebSocket] | Dict[str, WebSocket]]] = {}
         self.state: str = "room_opened"
         self.current_question_id: str = None 
+        self.current_question_timestamp: datetime = None
+        self.current_question_time: int = None
     
     def set_room_manager(self, room_code: str, manager: WebSocket):
         try: 

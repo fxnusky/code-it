@@ -64,6 +64,21 @@ class SubmissionRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Unexpected error: {str(e)}"
             )
+
+    def get_submissions_by_submission_id(self, submission_id: int):
+        try:
+            return self.db.query(Submission).filter(Submission.submission_id == submission_id).first()
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error while retrieving the submission"
+            )
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
+            )
     
     def get_total_points_by_player_id(self, player_id: int):
         try:

@@ -81,7 +81,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_player_message(data, room_code, websocket, game_connection_service)
+                await handle_player_message(data, room_code, websocket, game_connection_service, submission_service)
                 
             except WebSocketDisconnect:
                 await game_connection_service.disconnect_player(websocket, room_code, player_id)
