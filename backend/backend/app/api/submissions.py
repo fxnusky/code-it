@@ -14,13 +14,6 @@ from ..database import get_db
 import json
 import math
 from ast import literal_eval
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -83,7 +76,6 @@ except Exception as e:
     sys.stdout = old_stdout
     print(json.dumps({{"error": str(e)}}))
 """
-            logger.info(f"{test_code}")
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     "http://isolate-service:8001/execute/python",
@@ -96,7 +88,6 @@ except Exception as e:
                 )
                 response.raise_for_status()
                 result = response.json()
-                logger.info(f"{str(result)}")
                 submission_id = submission["id"]
                 case_id = test_case.case_id
                 try:

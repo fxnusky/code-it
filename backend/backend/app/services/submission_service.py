@@ -18,6 +18,12 @@ class SubmissionService:
             self.submission_repository.update_submission_points(submission_id, new_points)
         except HTTPException: 
             raise
+    
+    def get_submissions_by_submission_id(self, submission_id: int):
+        try:
+            return self.submission_repository.get_submissions_by_submission_id(submission_id)
+        except HTTPException: 
+            raise
 
     def get_question_results_by_player(self, player_id: int, question_id: int):
         try:
