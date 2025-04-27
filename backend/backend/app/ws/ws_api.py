@@ -66,6 +66,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 "question_points": points["question_points"],
                 "test_case_executions": test_case_executions
             }
+        position = submission_service.get_player_position(player_id, room_code)
 
         points = submission_service.get_total_points_by_player_id(player_id)
         await game_connection_service.send_message({
@@ -76,7 +77,8 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
             "manager_connected": game_connection_service.rooms[room_code]["manager"] != None,
             "question": question,
             "question_results": question_results,
-            "points": points
+            "points": points,
+            "position": position
             }, 
             websocket)
         await game_connection_service.send_manager_message({"action": "player_joined"}, room_code)

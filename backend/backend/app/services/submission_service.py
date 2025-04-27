@@ -67,3 +67,9 @@ class SubmissionService:
             return self.submission_repository.get_total_points_by_player_id(player_id)
         except HTTPException: 
             raise
+
+    def get_player_position(self, player_id: int, room_code: str):
+        try:
+            return self.submission_repository.get_player_position(player_id, room_code)
+        except HTTPException: 
+            raise

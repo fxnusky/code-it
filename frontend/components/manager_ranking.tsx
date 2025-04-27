@@ -3,7 +3,7 @@ import styles from './ranking.module.css';
 import { Button } from "@/components/ui/button"
 
 type ManagerRankingProps = {
-  ranking: [string, number][];
+  ranking: [number, string, number][];
   handleNextQuestion: () => void;
 };
 
@@ -22,9 +22,9 @@ export const ManagerRanking = ({
           <span>Points</span>
         </div>
         
-        {ranking.map(([nickname, points], index) => (
+        {ranking.map(([position, nickname, points], index) => (
           <div key={index} className={styles.playerRow}>
-            <span className={styles.rank}>#{index + 1}</span>
+            <span className={styles.rank}>#{position}</span>
             <span className={styles.nickname}>{nickname}</span>
             <span className={styles.points}>{points} pts</span>
           </div>

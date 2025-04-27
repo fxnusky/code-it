@@ -155,21 +155,27 @@ class SubmissionRepository:
         
     def get_total_points_players(self, room_code: str):
         try:
-            players_points = (
+            players_with_position = (
                 self.db.query(
                     Player.id,
                     Player.nickname,
-                    func.sum(Submission.earned_points).label("total_points")
+                    func.coalesce(func.sum(Submission.earned_points), 0).label("total_points"),
+                    func.dense_rank().over(order_by=func.coalesce(func.sum(Submission.earned_points), 0).desc()).label("position")
                 )
-                .join(Submission, Player.id == Submission.player_id) 
+                .outerjoin(Submission, Player.id == Submission.player_id)  
                 .filter(Player.room_code == room_code)
-                .group_by(Player.id, Player.nickname) 
-                .all() 
+                .group_by(Player.id, Player.nickname)
+                .order_by(func.coalesce(func.sum(Submission.earned_points), 0).desc())
+                .all()
             )
 
             return {
-                player_id: {"nickname": nickname, "total_points": total_points}
-                for player_id, nickname, total_points in players_points
+                player_id: {
+                    "nickname": nickname,
+                    "total_points": total_points,
+                    "position": position 
+                }
+                for player_id, nickname, total_points, position in players_with_position
             }
                 
         
@@ -207,3 +213,21 @@ class SubmissionRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Unexpected error: {str(e)}"
             )
+    
+    def get_player_position(self, player_id, room_code):
+        players_with_position = (
+            self.db.query(
+                Player.id,
+                func.dense_rank().over(
+                    order_by=func.coalesce(func.sum(Submission.earned_points), 0).desc()
+                ).label("position")
+            )
+            .outerjoin(Submission, Player.id == Submission.player_id)
+            .filter(Player.room_code == room_code)
+            .group_by(Player.id)
+            .subquery()
+        )
+        
+        result = self.db.query(players_with_position.c.position).filter(players_with_position.c.id == player_id).scalar()
+        
+        return result

@@ -27,7 +27,7 @@ export default function Manager() {
   const [results, setResults] = useState<ManagerResult[] | null>(null);
   const questionIndexRef = useRef(questionIndex);
   const [submissions, setSubmissions] = useState(0);
-  const [ranking, setRanking] = useState<[string, number][] | null>(null);
+  const [ranking, setRanking] = useState<[number, string, number][] | null>(null);
   const connectionService = useWSConnection();
   const router = useRouter();
   const { room_code }: {room_code: string} = useParams(); 
@@ -64,10 +64,10 @@ export default function Manager() {
     }else if (message.action === "ranking"){
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
       if (message.ranking){
-        let rankin = Object.entries(message.ranking)
-        .map(([_, player]) => [player.nickname, player.points] as [string, number])
-        .sort((a, b) => b[1] - a[1]);
-        setRanking(rankin)
+        let ranking = Object.entries(message.ranking)
+        .map(([_, player]) => [player.position, player.nickname, player.total_points] as [number, string, number])
+        .sort((a, b) => a[0] - b[0]);
+        setRanking(ranking)
       }
     }else if (message.action === "status"){
       if(message.state){
@@ -92,10 +92,10 @@ export default function Manager() {
         setResults(message.stats)
       }
       if (message.ranking){
-        let rankin = Object.entries(message.ranking)
-        .map(([_, player]) => [player.nickname, player.points] as [string, number])
-        .sort((a, b) => b[1] - a[1]);
-        setRanking(rankin)
+        let ranking = Object.entries(message.ranking)
+        .map(([_, player]) => [player.position, player.nickname, player.total_points] as [number, string, number])
+        .sort((a, b) => b[0] - a[0]);
+        setRanking(ranking)
       }
     }else{
       console.error("Unknown message from server ", message)
