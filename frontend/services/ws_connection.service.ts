@@ -16,7 +16,10 @@ export type GameMessage = {
   question?: Question,
   submissions?: number
   question_results?: PlayerResult
-  stats?: ManagerResult[] 
+  stats?: ManagerResult[]
+  points?: number
+  position?: number
+  ranking?: {player_id: {nickname: string, total_points: number, position: number}} 
 };
 
 export interface Question {

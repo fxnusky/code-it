@@ -15,6 +15,7 @@ import ExecuteService from '../../../../services/execute.service';
 import { LoadingState } from '../../../../components/loading_state';
 import { PlayerResult } from '../../../../services/ws_connection.service';
 import { PlayerResults } from '../../../../components/player_results';
+import { PlayerRanking } from '../../../../components/player_ranking';
 
 export default function Profile() {
     const [roomCode, setRoomCode] = useState("");
@@ -23,6 +24,8 @@ export default function Profile() {
     const [isManagerConnected, setIsManagerConnected] = useState(true);
     const [question, setQuestion] = useState<Question | null>(null);
     const [results, setResults] = useState<PlayerResult | null>(null);
+    const [points, setPoints] = useState(0);
+    const [position, setPosition] = useState(0);
     const connectionService = useWSConnection();
     const router = useRouter();
     const { token }: {token: string} = useParams(); 
@@ -70,6 +73,12 @@ export default function Profile() {
             if (message.question_results){
                 setResults(message.question_results)
             }
+            if (message.points){
+                setPoints(message.points)
+            }
+            if (message.position){
+                setPosition(message.position);
+            }
         }else if (message.action === "question"){
             if (message.question){
                 setQuestion(message.question);
@@ -86,9 +95,20 @@ export default function Profile() {
     
         }else if (message.action === "ranking"){
             setState(message.action);
-    
+            if (message.points){
+                setPoints(message.points);
+            }
+            if (message.position){
+                setPosition(message.position);
+            }
         }else if (message.action === "game_ended"){
             setState(message.action);
+            if (message.points){
+                setPoints(message.points);
+            }
+            if (message.position){
+                setPosition(message.position);
+            }
         }else if (message.action === "manager_disconnected"){
             setIsManagerConnected(false);
         }else if (message.action === "manager_connected"){
@@ -127,7 +147,7 @@ export default function Profile() {
                 <PlayerResults nickname={nickname} results={results}></PlayerResults>
             )}
             {state == "ranking" &&  (
-                <p>Ranking</p>
+                <PlayerRanking position={position} nickname={nickname} points={points}></PlayerRanking>
             )}
             {state == "game_ended" &&  (
                 <Button onClick={() => {router.push("/join-room")}}>Close</Button>

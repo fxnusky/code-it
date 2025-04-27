@@ -66,6 +66,9 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 "question_points": points["question_points"],
                 "test_case_executions": test_case_executions
             }
+        position = submission_service.get_player_position(player_id, room_code)
+
+        points = submission_service.get_total_points_by_player_id(player_id)
         await game_connection_service.send_message({
             "action": "status", 
             "state": state, 
@@ -73,7 +76,9 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
             "nickname": nickname, 
             "manager_connected": game_connection_service.rooms[room_code]["manager"] != None,
             "question": question,
-            "question_results": question_results
+            "question_results": question_results,
+            "points": points,
+            "position": position
             }, 
             websocket)
         await game_connection_service.send_manager_message({"action": "player_joined"}, room_code)
@@ -131,6 +136,9 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
         result_stats = {}
         if game_connection_service.current_question_id and game_connection_service.state == "question_results":
             result_stats = submission_service.get_question_results_stats(room_code, game_connection_service.current_question_id)
+        
+        ranking = submission_service.get_total_points_players(room_code)
+
         await game_connection_service.send_message({
             "action": "status", 
             "state": game_connection_service.state, 
@@ -139,7 +147,8 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
             "current_question_id": game_connection_service.current_question_id,
             "question": question,
             "stats": result_stats,
-            "submissions": submissions
+            "submissions": submissions,
+            "ranking": ranking
             }, websocket)
         await game_connection_service.broadcast_players({"action": "manager_connected"}, room_code)
     except Exception as e:

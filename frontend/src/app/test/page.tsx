@@ -1,14 +1,11 @@
 'use client';
-import styles from '../page.module.css'
-import { PlayerResults } from '../../../components/player_results';
+import { PlayerRanking } from "../../../components/player_ranking";
 
 export default function Test() {
     let func = () => {
 
     }
-    let results = {total_points: 0, question_points: 0, test_case_executions: [{case_id: 1, correct: false}, {case_id: 2, correct: false}, {case_id: 3, correct: false}]}
+    let ranking: [string, number][] = [["nickname", 100000], ["nickname", 34], ["nickname", 19], ["nickname", 18], ["nickname", 17], ["nickname", 16], ["nickname", 15], ["nickname", 14], ["nickname", 13], ["nickname", 12], ["nickname", 11], ["nickname", 10], ["nickname", 9], ["nickname", 8], ["nickname", 7], ["nickname", 6], ["nickname", 5], ["nickname", 4]]
     
-    return(
-        <PlayerResults nickname='fanny' results={results}></PlayerResults>
-    )
+    return null
 }
