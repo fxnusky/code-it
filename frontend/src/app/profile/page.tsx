@@ -17,8 +17,8 @@ export default function Profile() {
   async function handleStartGame(){
     try{
       setIsLoading(true);
-      let template_id = 1;
-      let response: ApiResponse<any> | null = await RoomService.createRoom({template_id, token});
+      const template_id = 1;
+      const response: ApiResponse | null = await RoomService.createRoom({template_id, token});
       
       if (response && response.status == "success") {
           router.push(`/game-manager/${response.data["room_code"]}`);

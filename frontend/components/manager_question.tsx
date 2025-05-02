@@ -42,7 +42,7 @@ useEffect(() => {
         roomData.time_start = Date.now().toString();
         localStorage.setItem(roomKey, JSON.stringify(roomData));
     }
-}, [question.id]);
+}, [question.id, room_code]);
 
   const formatTime = (seconds: number): string => {
     if (seconds >= 3600) {
