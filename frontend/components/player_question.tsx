@@ -60,7 +60,7 @@ export const PlayerQuestion = ({
   };
 
   async function runCode() {
-    let result = await ExecuteService.runCode({code});
+    const result = await ExecuteService.runCode({code});
     if (result && result.data.return_code === 0){
       const formattedOutput = result.data.output.replace(/\\n/g, '\n');
       setTerminalText(formattedOutput)

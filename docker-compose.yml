@@ -12,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - mynetwork
 
@@ -23,6 +24,7 @@ services:
     environment:
       DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase
       ISOLATE_SERVICE_URL: http://isolate-service:8001
+      FRONTEND_URL: http://frontend:80
     depends_on:
       - db
       - isolate-service
@@ -47,11 +49,24 @@ services:
     networks:
       - mynetwork
 
+  frontend:
+    build: ./frontend
+    container_name: frontend_app
+    ports:
+      - "3000:3000" 
+    environment:
+      - API_URL=http://backend:8000 
+    depends_on:
+      - backend
+    networks:
+      - mynetwork
+
 networks:
   mynetwork:
     driver: bridge
 
 volumes:
+  postgres_data:
   isolate-boxes:
   isolate-locks:
   isolate-cgroup:

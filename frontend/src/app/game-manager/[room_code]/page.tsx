@@ -38,7 +38,7 @@ export default function Manager() {
     if (response && response.data) {
       setPlayers(response.data);
     }
-  }, []); 
+  }, [room_code]); 
 
   const updateQuestionIndex = (newIndex: number) =>{
     setQuestionIndex(newIndex);
@@ -64,9 +64,10 @@ export default function Manager() {
     }else if (message.action === "ranking"){
       setState(lastState => lastState !== "game_ended"? message.action: "game_ended");
       if (message.ranking){
-        let ranking = Object.entries(message.ranking)
-        .map(([_, player]) => [player.position, player.nickname, player.total_points] as [number, string, number])
-        .sort((a, b) => a[0] - b[0]);
+        const ranking = Object.values(message.ranking)
+        .map((player: { nickname: string, total_points: number, position: number }) => 
+            [player.position, player.nickname, player.total_points] as [number, string, number])
+        .sort((a, b) => b[0] - a[0]);
         setRanking(ranking)
       }
     }else if (message.action === "status"){
@@ -92,8 +93,9 @@ export default function Manager() {
         setResults(message.stats)
       }
       if (message.ranking){
-        let ranking = Object.entries(message.ranking)
-        .map(([_, player]) => [player.position, player.nickname, player.total_points] as [number, string, number])
+        const ranking = Object.values(message.ranking)
+        .map((player: { nickname: string, total_points: number, position: number }) => 
+            [player.position, player.nickname, player.total_points] as [number, string, number])
         .sort((a, b) => b[0] - a[0]);
         setRanking(ranking)
       }
@@ -114,7 +116,7 @@ export default function Manager() {
   };
   const handleNextQuestion = () =>{
     setSubmissions(0);
-    let nextIndex = questionIndex +1;
+    const nextIndex = questionIndex +1;
     if (nextIndex < questionIds.length){
       updateQuestionIndex(nextIndex)
       connectionService.sendMessage({"action": "next_question", "question_id": questionIds[nextIndex]})
@@ -142,7 +144,7 @@ export default function Manager() {
     if (token && room_code) {
       connectToRoom();
     }
-  }, [connectionService, token, room_code]);
+  }, [connectionService, token, room_code, handleMessage]);
 
   const handleStartGame = () =>{
     connectionService.sendMessage({"action": "start_game", "question_id": questionIds[questionIndex]})
