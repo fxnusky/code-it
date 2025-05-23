@@ -22,9 +22,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase
-      ISOLATE_SERVICE_URL: http://isolate-service:8001
-      FRONTEND_URL: http://frontend:80
+      DATABASE_URL: ${DATABASE_URL}
+      ISOLATE_SERVICE_URL: ${ISOLATE_SERVICE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
       - db
       - isolate-service
