@@ -7,14 +7,16 @@ const begin_code_execution = new Trend('begin_code_execution_latency', true);
 const end_code_execution = new Trend('end_code_execution_latency', true);
 
 export const options = {
-  stages: [
-    // Ramp up to 50 VUs over 30 seconds
-    { duration: '30s', target: 500 },
-    // Hold at 50 VUs for 2 minutes
-    { duration: '30s', target: 500 },
-    // Ramp down to 0 VUs over 30 seconds
-    { duration: '30s', target: 0 },
-  ],
+  scenarios: {
+    thoughput: {
+        executor: 'constant-arrival-rate',
+        duration: '30s', 
+        rate: 60,
+        timeUnit: '1m',
+        preAllocatedVUs: 50,
+        maxVUs: 100
+    }
+  }
   /*thresholds: {
     // Define thresholds for your custom metric
     'response_header_time': ['p(95)<500'], // 95% of values should be below 500ms
