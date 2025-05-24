@@ -1,10 +1,15 @@
 import os
 import subprocess
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 from typing import Optional
 from pathlib import Path
+import time
+import logging
+
+def current_milli_time():
+    return int(time.time_ns() / 1_000_000)
 
 app = FastAPI()
 
@@ -22,8 +27,10 @@ class CodeExecutionRequest(BaseModel):
     memory_limit: Optional[int] = 65536  # KB
 
 @app.post("/execute/python")
-async def execute_code(request: CodeExecutionRequest):
+async def execute_code(request: CodeExecutionRequest, response: Response):
     try:
+        t1 = current_milli_time()
+        logging.info(t1)
         # Step 1: Initialize the isolate box
         init_result = subprocess.run(
             ["isolate", "--init"],
@@ -53,7 +60,7 @@ async def execute_code(request: CodeExecutionRequest):
         meta_file = box_dir / "meta.txt"
         
         executable = ["/usr/bin/python3", "/box/script.py"]
-
+        t2 = current_milli_time()
         run_result = subprocess.run([
             "isolate",
             "--run",
@@ -66,7 +73,7 @@ async def execute_code(request: CodeExecutionRequest):
             "--",
             *executable
         ], capture_output=True, text=True, cwd=box_dir)
-
+        t3 = current_milli_time()
         # Step 4: Read output and metadata
         output = run_result.stdout
         error = run_result.stderr
@@ -82,7 +89,8 @@ async def execute_code(request: CodeExecutionRequest):
 
         # Step 5: Clean up
         subprocess.run(["isolate", "--cleanup", f"--box-id={box_number}"], check=True)
-
+        t4 = current_milli_time()
+        response.headers["X-Req-Insights"] = f"received={t1},run_start={t2},run_end={t3},respond={t4}"
         return {
             "status":"success",
             "data": {
