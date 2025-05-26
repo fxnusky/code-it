@@ -32,6 +32,19 @@ class AuthService:
             return user
         except HTTPException:
             raise
+    
+    def get_or_create_user_wo_token(self, token: str):
+        try:
+            user = self.user_repository.get_user_by_google_id(token[5:])
+            if not user:
+                user = self.user_repository.create_user(
+                    google_id=token[5:],
+                    email=f"{token[5:]}@gmail.com",
+                    name=f"{token[5:]}",
+                )
+            return user
+        except HTTPException:
+            raise
 
     def update_active_room(self, google_id: str, room_code: str):
         try:

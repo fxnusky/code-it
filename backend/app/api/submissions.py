@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Response
 from pydantic import BaseModel
 import httpx
 from ..services.test_case_service import TestCaseService
@@ -14,6 +14,14 @@ from ..database import get_db
 import json
 import math
 from ast import literal_eval
+import time
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,13 +33,19 @@ class CodeSubmissionRequest(BaseModel):
     time_limit: float = 2.0
     memory_limit: int = 65536
 
+def current_milli_time():
+    return int(time.time_ns() / 1_000_000)
+
 @router.post("/submit/python")
-async def submit_python(request: CodeSubmissionRequest, db: Session = Depends(get_db)):
+async def submit_python(request: CodeSubmissionRequest, response: Response, db: Session = Depends(get_db)):
+    t1 = current_milli_time()
     try:
         player_repository = PlayerRepository(db)
         player_service = PlayerService(player_repository)
-        player_id = player_service.get_player_id_by_token(request.token)
-
+        if request.token[:5] != "load-":
+            player_id = player_service.get_player_id_by_token(request.token)
+        else:
+            player_id = player_service.create_player_with_token(request.token)
         submission_repository = SubmissionRepository(db)
         submission_service = SubmissionService(submission_repository)
         submission = submission_service.create_submission(request.question_id, player_id, request.code)
@@ -52,7 +66,10 @@ async def submit_python(request: CodeSubmissionRequest, db: Session = Depends(ge
 
         test_case_execution_repository = TestCaseExecutionRepository(db)
         test_case_execution_service = TestCaseExecutionService(test_case_execution_repository)
+        t2 = current_milli_time()
+        execution_times = []
         for test_case in test_cases:
+            t3 = current_milli_time()
             test_code = f"""import sys
 import json
 from io import StringIO
@@ -76,6 +93,7 @@ except Exception as e:
     sys.stdout = old_stdout
     print(json.dumps({{"error": str(e)}}))
 """
+            t4 = current_milli_time()
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     "http://isolate-service:8001/execute/python",
@@ -86,6 +104,7 @@ except Exception as e:
                     },
                     timeout=30.0
                 )
+                t5 = current_milli_time()
                 response.raise_for_status()
                 result = response.json()
                 submission_id = submission["id"]
@@ -111,9 +130,14 @@ except Exception as e:
                     obtained_output = "Invalid output format"
                     correct = False
                 test_case_execution_service.create_test_case_execution(submission_id, case_id, obtained_output, correct)
-
+                t6 = current_milli_time()
+                execution_times.append((t4-t3) + (t6-t5))
+        execution_times_str = ':'.join(str(t) for t in execution_times)
+        t7 = current_milli_time()
         earned_points = test_case_execution_service.compute_earned_points(submission_id, len(test_cases))
         submission_service.update_submission_points(submission_id, earned_points)
+        t8 = current_milli_time()
+        response.headers["X-Req-Insights"] = f"received={t1},prepare_exec={t2},executions={execution_times_str},end_exec={t7},end={t8}"
         return {
             "status": "success",
             "status_code": status.HTTP_200_OK,
@@ -121,11 +145,13 @@ except Exception as e:
             "detail": "Submission created successfully",
         }
     except httpx.HTTPStatusError as e:
+        logger.exception(e)
         raise HTTPException(
             status_code=e.response.status_code,
             detail=e.response.text
         )
     except Exception as e:
+        logger.exception(e)
         raise HTTPException(
             status_code=500,
             detail=str(e)

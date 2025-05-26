@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from ..services.auth_service import AuthService
 from ..repositories.user_repository import UserRepository
 from ..repositories.game_template_repository import GameTemplateRepository
+from typing import Optional
 
 
 router = APIRouter()
@@ -59,13 +60,17 @@ def delete_player(
 class RoomRequest(BaseModel):
     token: str
     template_id: int
+    room_code: Optional[str] = None
 
 @router.post("/rooms")
 def get_room_code(request: RoomRequest, db: Session = Depends(get_db)):
     try:
         user_repository = UserRepository(db)
         auth_service = AuthService(user_repository)
-        user = auth_service.get_or_create_user(request.token)
+        if request.token[:5] != "load-":
+            user = auth_service.get_or_create_user(request.token)
+        else:
+            user = auth_service.get_or_create_user_wo_token(request.token)
         if user.active_room:
             raise HTTPException(
                 status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -80,7 +85,9 @@ def get_room_code(request: RoomRequest, db: Session = Depends(get_db)):
             ) 
         room_repository = RoomRepository(db)
         room_service = RoomService(room_repository)
-        room_code = room_service.get_room_code()
+        room_code = request.room_code
+        if not room_code:
+            room_code = room_service.get_room_code()
         room_service.create_room(room_code, request.template_id)
         auth_service.update_active_room(user.google_id, room_code)
         return {

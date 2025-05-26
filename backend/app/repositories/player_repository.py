@@ -81,3 +81,32 @@ class PlayerRepository:
         return self.db.query(Player).filter(
             Player.token == token
         ).first()
+    
+    def create_player_with_token(self, token: str):
+        existing_player = self.get_player_by_token(token)
+        
+        if existing_player:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Player with token {token} already exists"
+            )
+        try:
+            player = Player(room_code=token, nickname=token, token=token)
+            self.db.add(player)
+            self.db.commit()
+            self.db.refresh(player)
+            return player
+            
+        except IntegrityError as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Database error: {str(e)}"
+            )
+            
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected error: {str(e)}"
+            )

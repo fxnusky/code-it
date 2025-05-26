@@ -1,10 +1,15 @@
 import os
 import subprocess
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 from typing import Optional
 from pathlib import Path
+import time
+import asyncio
+
+def current_milli_time():
+    return int(time.time_ns() / 1_000_000)
 
 app = FastAPI()
 
@@ -22,22 +27,29 @@ class CodeExecutionRequest(BaseModel):
     memory_limit: Optional[int] = 65536  # KB
 
 @app.post("/execute/python")
-async def execute_code(request: CodeExecutionRequest):
+async def execute_code(request: CodeExecutionRequest, response: Response):
     try:
+        t1 = current_milli_time()
         # Step 1: Initialize the isolate box
-        init_result = subprocess.run(
-            ["isolate", "--init"],
-            capture_output=True,
-            text=True
+        process = await asyncio.create_subprocess_exec(
+            "isolate",
+            "--init",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
         
-        if init_result.returncode != 0:
+        # Wait for the process to complete and capture output
+        stdout, stderr = await process.communicate()
+        
+        # Convert bytes to string (text=True equivalent)
+        box_path = stdout.decode().strip()
+        error = stderr.decode()
+        
+        if process.returncode != 0:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to initialize isolate box: {init_result.stderr}"
+                detail=f"Failed to initialize isolate box: {error}"
             )
-        
-        box_path = init_result.stdout.strip()
 
         # Step 2: Prepare the code file
         box_dir = Path(box_path) / "box"
@@ -53,8 +65,8 @@ async def execute_code(request: CodeExecutionRequest):
         meta_file = box_dir / "meta.txt"
         
         executable = ["/usr/bin/python3", "/box/script.py"]
-
-        run_result = subprocess.run([
+        t2 = current_milli_time()
+        process = await asyncio.create_subprocess_exec(
             "isolate",
             "--run",
             f"--time={request.time_limit}",
@@ -64,13 +76,19 @@ async def execute_code(request: CodeExecutionRequest):
             "--dir=/usr/bin/",
             "--dir=/usr/lib/",
             "--",
-            *executable
-        ], capture_output=True, text=True, cwd=box_dir)
-
-        # Step 4: Read output and metadata
-        output = run_result.stdout
-        error = run_result.stderr
+            *executable,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=box_dir
+        )
+        t3 = current_milli_time()
+        # Wait for the process to complete and capture output
+        stdout, stderr = await process.communicate()
         
+        # Convert bytes to string if needed (text=True equivalent)
+        output = stdout.decode()
+        error = stderr.decode()
+
         meta = {}
         if meta_file.exists():
             with open(meta_file, 'r') as f:
@@ -81,14 +99,22 @@ async def execute_code(request: CodeExecutionRequest):
         
 
         # Step 5: Clean up
-        subprocess.run(["isolate", "--cleanup", f"--box-id={box_number}"], check=True)
-
+        await asyncio.create_subprocess_exec(
+            "isolate",
+            "--cleanup",
+            f"--box-id={box_number}",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=box_dir
+        )
+        t4 = current_milli_time()
+        response.headers["X-Req-Insights"] = f"received={t1},run_start={t2},run_end={t3},respond={t4}"
         return {
             "status":"success",
             "data": {
                 "output": output,
                 "error": error,
-                "return_code": run_result.returncode,
+                "return_code": process.returncode,
                 "metadata": meta
             }
         }
