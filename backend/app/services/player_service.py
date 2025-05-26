@@ -26,3 +26,9 @@ class PlayerService:
             return player.id
         except HTTPException:
             raise
+    def create_player_with_token(self, token: str):
+        try:
+            player = self.player_repository.create_player_with_token(token)
+            return player.id
+        except HTTPException:
+            raise
