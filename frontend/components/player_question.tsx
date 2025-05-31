@@ -60,17 +60,20 @@ export const PlayerQuestion = ({
   };
 
   async function runCode() {
-    const result = await ExecuteService.runCode({code});
-    if (result && result.data.return_code === 0){
-      const formattedOutput = result.data.output.replace(/\\n/g, '\n');
-      setTerminalText(formattedOutput)
-    }
-    else if (result){
-      const formattedError = result.data.error.replace(/\\n/g, '\n');
-      setTerminalText(formattedError)
-    }
-    else{
-      setTerminalText("Error")
+    if (question.language){
+      const language = question.language
+      const result = await ExecuteService.runCode({code, language});
+      if (result && result.data?.return_code === 0){
+        const formattedOutput = result.data.output.replace(/\\n/g, '\n');
+        setTerminalText(formattedOutput)
+      }
+      else if (result){
+        const formattedError = result.data.error.replace(/\\n/g, '\n');
+        setTerminalText(formattedError)
+      }
+      else{
+        setTerminalText("Error")
+      }
     }
   };
   return (
@@ -89,7 +92,7 @@ export const PlayerQuestion = ({
             <div className={styles.editor_container}>
               <Editor
                 height="100vh"
-                defaultLanguage="python"
+                defaultLanguage={question.language}
                 onChange={handleEditorChange}
                 value={code}
                 options={{

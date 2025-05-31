@@ -119,10 +119,11 @@ export default function Profile() {
       };
     
     async function handleSubmitQuestion(code: string) {
-        if (question?.id && question?.main_function){
+        if (question?.id && question?.main_function && question?.language){
             const question_id = question?.id
             const main_function = question?.main_function
-            const submission = await ExecuteService.submitCode({code, token, question_id, main_function})
+            const language = question?.language
+            const submission = await ExecuteService.submitCode({code, token, question_id, main_function, language})
             if (submission && submission.status==="success"){
                 connectionService.sendMessage({"action": "submit_question", "submission_id": submission.data.id})
             }

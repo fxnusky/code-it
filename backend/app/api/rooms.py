@@ -61,9 +61,10 @@ class RoomRequest(BaseModel):
     token: str
     template_id: int
     room_code: Optional[str] = None
+    override: bool = False
 
 @router.post("/rooms")
-def get_room_code(request: RoomRequest, db: Session = Depends(get_db)):
+def create_room(request: RoomRequest, db: Session = Depends(get_db)):
     try:
         user_repository = UserRepository(db)
         auth_service = AuthService(user_repository)
@@ -71,17 +72,27 @@ def get_room_code(request: RoomRequest, db: Session = Depends(get_db)):
             user = auth_service.get_or_create_user(request.token)
         else:
             user = auth_service.get_or_create_user_wo_token(request.token)
-        if user.active_room:
+        if not request.override and user.active_room:
             raise HTTPException(
                 status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-                detail="This user has already a game in progress."
+                detail={
+                    "status": "error",
+                    "status_code": status.HTTP_405_METHOD_NOT_ALLOWED,
+                    "detail": "This user has already a game in progress.",
+                    "data": {"room_code": user.active_room}
+                }
             ) 
         template_repository = GameTemplateRepository(db)
         template = template_repository.get_template_by_id(request.template_id)
         if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="The template with ID {request.template_id} does not exist."
+                detail={
+                    "status": "error",
+                    "status_code": status.HTTP_404_NOT_FOUND,
+                    "detail": f"The template with ID {request.template_id} does not exist.",
+                    "data": None
+                }
             ) 
         room_repository = RoomRepository(db)
         room_service = RoomService(room_repository)

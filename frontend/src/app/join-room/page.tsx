@@ -128,7 +128,7 @@ export default function JoinGame() {
           </div>   
           <div className={styles.card}>
             <div className={styles.cardContent}>
-              <p className={styles.createGameText}>Want to create your own game?</p>
+              <p className={styles.createGameText}>Want to host your own game?</p>
               <Button 
                 onClick={() => router.push("/profile")}
                 variant="secondary"

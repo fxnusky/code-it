@@ -42,6 +42,7 @@ class Question(Base):
     time_limit = Column(Integer, nullable=False) 
     code_starter = Column(Text, nullable=False)
     main_function = Column(Text, nullable=False)
+    language = Column(Text, nullable=False, default='python')
 
 class TestCase(Base):
     __tablename__ = 'test_cases'
