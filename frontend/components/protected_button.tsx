@@ -4,7 +4,7 @@ import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oau
 import { useRouter } from 'next/navigation';
 import AuthService from '../services/auth.service';
 
-const GOOGLE_CLIENT_ID = "195860473074-e880uq1l37obetripidmk7odc2kcb184.apps.googleusercontent.com"
+const GOOGLE_CLIENT_ID = "921496431352-h75ism3ee3p8oiku1dmq2ndgaetluh2i.apps.googleusercontent.com"
 
 type ProtectedButtonProps = {
   redirectTo: string;
@@ -15,6 +15,7 @@ export const ProtectedButton = ({
   redirectTo,
   setIsLoading
 }: ProtectedButtonProps) => {
+  console.log(GOOGLE_CLIENT_ID)
   const { login } = useAuth();
   const router = useRouter();
 
