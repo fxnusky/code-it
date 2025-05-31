@@ -68,7 +68,6 @@ export default function Manager() {
         .map((player: { nickname: string, total_points: number, position: number }) => 
             [player.position, player.nickname, player.total_points] as [number, string, number])
         .sort((a, b) => a[0] - b[0]);
-        console.log(ranking)
         setRanking(ranking)
       }
     }else if (message.action === "status"){

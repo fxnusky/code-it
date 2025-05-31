@@ -24,7 +24,7 @@ export const options = {
 
 
 export default function () {
-  const url = 'http://34.51.131.76:8000/submit/python';
+  const url = 'http://34.51.131.76:8000/submit';
   const params = {
     headers: {
       'Content-Type': 'application/json',
@@ -36,7 +36,8 @@ export default function () {
         "question_id": 1,
         "main_function": "add",
         "time_limit": 2,
-        "memory_limit": 65536
+        "memory_limit": 65536,
+        "language": "python"
     })
 
   const response = http.post(url, payload, params);

@@ -44,7 +44,7 @@ export default function () {
         const res_create_room = http.post(URL_CREATE_ROOM, payload, params);     
         console.log(JSON.stringify(res_create_room.json()))
         if (res_create_room.status !== 200){
-            fail("cries in "+ res_create_room.status + " with body " + JSON.stringify(res_create_room.json()))
+            fail("status "+ res_create_room.status + " with body " + JSON.stringify(res_create_room.json()))
         }  
 
 const res = ws.connect(
@@ -122,7 +122,7 @@ const res = ws.connect(
     }
     else{
         quickSleep(2);
-        console.log("player" + room_code + "cries"+ seed)
+        console.log("player" + room_code + " "+ seed)
         const params = {
             headers: {
                 'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ const res = ws.connect(
         const res_create_player = http.post(URL_CREATE_PLAYER, payload, params); 
         const response = res_create_player.json();    
         if (res_create_player.status !== 201){
-            fail("cries in "+ res_create_player.status + " with body " + JSON.stringify(response))
+            fail("status "+ res_create_player.status + " with body " + JSON.stringify(response))
         }
         let n_mes = 0
         console.log(response)

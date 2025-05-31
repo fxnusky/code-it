@@ -24,7 +24,7 @@ export const options = {
 };
 
 export default function () {
-  const url = 'http://34.51.173.48:8001/execute/python';
+  const url = 'http://34.51.173.48:8001/execute';
   const params = {
     headers: {
       'Content-Type': 'application/json',
@@ -33,7 +33,8 @@ export default function () {
   const payload = JSON.stringify({
         "code": "print(2+2)",
         "time_limit": 2,
-        "memory_limit": 65536
+        "memory_limit": 65536,
+        "language": "python"
     })
 
   const response = http.post(url, payload, params);
