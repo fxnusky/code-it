@@ -2,9 +2,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from fastapi import HTTPException, status
 from app.repositories.user_repository import UserRepository
+import os
 
-GOOGLE_CLIENT_ID = "195860473074-e880uq1l37obetripidmk7odc2kcb184.apps.googleusercontent.com"
-
+GOOGLE_CLIENT_ID = "921496431352-h75ism3ee3p8oiku1dmq2ndgaetluh2i.apps.googleusercontent.com"
 class AuthService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
