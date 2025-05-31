@@ -31,31 +31,25 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
     try:
         t1 = current_milli_time()
         # Step 1: Initialize the isolate box
-        process = await asyncio.create_subprocess_exec(
-            "isolate",
-            "--init",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+        init_result = subprocess.run(
+            ["isolate", "--init"],
+            capture_output=True,
+            text=True
         )
-        
-        # Wait for the process to complete and capture output
-        stdout, stderr = await process.communicate()
-        
-        # Convert bytes to string (text=True equivalent)
-        box_path = stdout.decode().strip()
-        error = stderr.decode()
-        
-        if process.returncode != 0:
+
+        if init_result.returncode != 0:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to initialize isolate box: {error}"
+                detail=f"Failed to initialize isolate box: {init_result.stderr}"
             )
+
+        box_path = init_result.stdout.strip()
 
         # Step 2: Prepare the code file
         box_dir = Path(box_path) / "box"
         box_number = box_path.split("/")[-1]
         os.chdir(box_dir)
-        
+
         file_path = box_dir / "script.py"
         with open(file_path, 'w') as f:
             f.write(request.code)
@@ -63,10 +57,10 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
 
         # Step 3: Execute the code in isolate
         meta_file = box_dir / "meta.txt"
-        
+
         executable = ["/usr/bin/python3", "/box/script.py"]
         t2 = current_milli_time()
-        process = await asyncio.create_subprocess_exec(
+        run_result = subprocess.run([
             "isolate",
             "--run",
             f"--time={request.time_limit}",
@@ -76,18 +70,12 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
             "--dir=/usr/bin/",
             "--dir=/usr/lib/",
             "--",
-            *executable,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=box_dir
-        )
+            *executable
+        ], capture_output=True, text=True, cwd=box_dir)
         t3 = current_milli_time()
-        # Wait for the process to complete and capture output
-        stdout, stderr = await process.communicate()
-        
-        # Convert bytes to string if needed (text=True equivalent)
-        output = stdout.decode()
-        error = stderr.decode()
+        # Step 4: Read output and metadata
+        output = run_result.stdout
+        error = run_result.stderr
 
         meta = {}
         if meta_file.exists():
@@ -96,17 +84,10 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
                     if ':' in line:
                         key, value = line.split(':', 1)
                         meta[key.strip()] = value.strip()
-        
+
 
         # Step 5: Clean up
-        await asyncio.create_subprocess_exec(
-            "isolate",
-            "--cleanup",
-            f"--box-id={box_number}",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=box_dir
-        )
+        subprocess.run(["isolate", "--cleanup", f"--box-id={box_number}"], check=True)
         t4 = current_milli_time()
         response.headers["X-Req-Insights"] = f"received={t1},run_start={t2},run_end={t3},respond={t4}"
         return {
@@ -114,7 +95,7 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
             "data": {
                 "output": output,
                 "error": error,
-                "return_code": process.returncode,
+                "return_code": run_result.returncode,
                 "metadata": meta
             }
         }
