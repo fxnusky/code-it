@@ -104,7 +104,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
         logger.exception(e)
     
 @router.websocket("/ws/manager")
-async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(...),  room_code: str = Query(...), db: Session = Depends(get_db)):
+async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(...), room_code: str = Query(...), db: Session = Depends(get_db)):
     await websocket.accept()
     try:
         user_repository = UserRepository(db)
