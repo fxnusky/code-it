@@ -67,7 +67,8 @@ export default function Manager() {
         const ranking = Object.values(message.ranking)
         .map((player: { nickname: string, total_points: number, position: number }) => 
             [player.position, player.nickname, player.total_points] as [number, string, number])
-        .sort((a, b) => b[0] - a[0]);
+        .sort((a, b) => a[0] - b[0]);
+        console.log(ranking)
         setRanking(ranking)
       }
     }else if (message.action === "status"){
@@ -96,7 +97,8 @@ export default function Manager() {
         const ranking = Object.values(message.ranking)
         .map((player: { nickname: string, total_points: number, position: number }) => 
             [player.position, player.nickname, player.total_points] as [number, string, number])
-        .sort((a, b) => b[0] - a[0]);
+        .sort((a, b) => a[0] - b[0]);
+        console.log(ranking)
         setRanking(ranking)
       }
     }else{
