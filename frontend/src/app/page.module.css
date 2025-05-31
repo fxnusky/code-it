@@ -155,3 +155,31 @@
   margin-left: .25rem;
   text-align: left;
 }
+
+.pageContainer {
+  position: relative;
+  min-height: 100vh;
+  padding: 20px;
+}
+.logoutContainer {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+.templatesContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.templatesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 30px;
+}
+.templateCard {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
