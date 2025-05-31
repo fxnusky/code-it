@@ -66,11 +66,24 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
             
             if compile_process.returncode != 0:
                 error_msg = stderr.decode().strip()
+                meta_file = box_dir / "meta.txt"
+                meta = {}
+                if meta_file.exists():
+                    with open(meta_file, 'r') as f:
+                        for line in f:
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                meta[key.strip()] = value.strip()
                 await cleanup_box(box_number)
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"C compilation failed: {error_msg}"
-                )
+                return {
+                    "status": "error",
+                    "data": {
+                        "output": "",
+                        "error": error_msg,
+                        "return_code": compile_process.returncode,
+                        "metadata": meta
+                    }
+                }
             
             if not (box_dir / "script").exists():
                 await cleanup_box(box_number)

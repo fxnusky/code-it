@@ -27,7 +27,8 @@ export interface Question {
   description: string,
   time_limit: number,
   code_starter: string,
-  main_function: string
+  main_function: string,
+  language: string
 }
 
 export interface ManagerResult {

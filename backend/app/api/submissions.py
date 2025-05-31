@@ -32,12 +32,55 @@ class CodeSubmissionRequest(BaseModel):
     main_function: str
     time_limit: float = 2.0
     memory_limit: int = 65536
+    language: str = 'python'
 
 def current_milli_time():
     return int(time.time_ns() / 1_000_000)
 
-@router.post("/submit/python")
-async def submit_python(request: CodeSubmissionRequest, response: Response, db: Session = Depends(get_db)):
+def get_python_test_code(code: str, main_function: str, input: str):
+    return f"""import sys
+import json
+from io import StringIO
+
+# Redirect stdout to suppress prints
+old_stdout = sys.stdout
+sys.stdout = StringIO()
+
+{code}
+
+try:
+    # Call the main function with test case input
+    result = {main_function}({input})
+    
+    # Restore stdout
+    sys.stdout = old_stdout
+    
+    # Return only the result as JSON
+    print(result)
+except Exception as e:
+    sys.stdout = old_stdout
+    print(json.dumps({{"error": str(e)}}))
+"""
+def get_c_test_code(code: str, main_function: str, input: str):
+    code = code.split("int main()")[0]
+    return f"""#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+{code}
+
+int main() {{
+    // Call the function with test input
+    int result = {main_function}({input});
+    
+    // Print the result in a structured way
+    printf("%d", result);
+    return 0;
+}}
+"""
+
+@router.post("/submit")
+async def submit(request: CodeSubmissionRequest, res: Response, db: Session = Depends(get_db)):
     t1 = current_milli_time()
     try:
         player_repository = PlayerRepository(db)
@@ -70,48 +113,32 @@ async def submit_python(request: CodeSubmissionRequest, response: Response, db: 
         execution_times = []
         for test_case in test_cases:
             t3 = current_milli_time()
-            test_code = f"""import sys
-import json
-from io import StringIO
-
-# Redirect stdout to suppress prints
-old_stdout = sys.stdout
-sys.stdout = StringIO()
-
-{request.code}
-
-try:
-    # Call the main function with test case input
-    result = {request.main_function}({test_case.input})
-    
-    # Restore stdout
-    sys.stdout = old_stdout
-    
-    # Return only the result as JSON
-    print(json.dumps({{"result": result}}))
-except Exception as e:
-    sys.stdout = old_stdout
-    print(json.dumps({{"error": str(e)}}))
-"""
+            if request.language == 'python':
+                test_code = get_python_test_code(request.code, request.main_function, test_case.input)
+            else:
+                test_code = get_c_test_code(request.code, request.main_function, test_case.input)
+                logger.info(test_code)
             t4 = current_milli_time()
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "http://isolate-service:8001/execute/python",
+                    "http://isolate-service:8001/execute",
                     json={
                         "code": test_code,
                         "time_limit": request.time_limit,
-                        "memory_limit": request.memory_limit
+                        "memory_limit": request.memory_limit,
+                        "language": request.language
                     },
                     timeout=30.0
                 )
                 t5 = current_milli_time()
-                response.raise_for_status()
+                #response.raise_for_status()
                 result = response.json()
+                logger.info(result)
                 submission_id = submission["id"]
                 case_id = test_case.case_id
                 try:
                     if result["status"] == "success":
-                        obtained_output = json.loads(result["data"]["output"].strip())["result"]
+                        obtained_output = json.loads(result["data"]["output"].strip())
                         
                         try:
                             expected_evaluated = literal_eval(test_case.expected_output)
@@ -129,6 +156,7 @@ except Exception as e:
                 except json.JSONDecodeError:
                     obtained_output = "Invalid output format"
                     correct = False
+                logger.info(correct)
                 test_case_execution_service.create_test_case_execution(submission_id, case_id, obtained_output, correct)
                 t6 = current_milli_time()
                 execution_times.append((t4-t3) + (t6-t5))
@@ -137,7 +165,7 @@ except Exception as e:
         earned_points = test_case_execution_service.compute_earned_points(submission_id, len(test_cases))
         submission_service.update_submission_points(submission_id, earned_points)
         t8 = current_milli_time()
-        response.headers["X-Req-Insights"] = f"received={t1},prepare_exec={t2},executions={execution_times_str},end_exec={t7},end={t8}"
+        res.headers["X-Req-Insights"] = f"received={t1},prepare_exec={t2},executions={execution_times_str},end_exec={t7},end={t8}"
         return {
             "status": "success",
             "status_code": status.HTTP_200_OK,
