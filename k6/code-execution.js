@@ -24,7 +24,7 @@ export const options = {
 };
 
 export default function () {
-  const url = 'http://34.51.173.48:8001/execute';
+  const url = 'http://localhost:8001/execute';
   const params = {
     headers: {
       'Content-Type': 'application/json',
