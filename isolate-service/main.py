@@ -31,20 +31,19 @@ class CodeExecutionRequest(BaseModel):
 async def execute_code(request: CodeExecutionRequest, response: Response):
     try:
         t1 = current_milli_time()
-        box_number = str(random.randint(0, 999))
-        process = await asyncio.create_subprocess_exec(
-            "isolate", "--init", f"--box={box_number}",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await process.communicate()
-        box_path = stdout.decode().strip()
-        
-        if process.returncode != 0:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Isolate init failed: {stderr.decode()}"
+        init = False
+        while not init:
+            box_number = str(random.randint(0, 999))
+            process = await asyncio.create_subprocess_exec(
+                "isolate", "--init", f"--box={box_number}",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
+            stdout, stderr = await process.communicate()
+            box_path = stdout.decode().strip()
+        
+            if process.returncode == 0:
+                init = True
         
         box_dir = Path(box_path) / "box"
         os.chdir(box_dir)
