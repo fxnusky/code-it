@@ -6,8 +6,7 @@ from typing import Optional
 from pathlib import Path
 import time
 import asyncio
-import json
-import re
+import random
 
 def current_milli_time():
     return int(time.time_ns() / 1_000_000)
@@ -32,8 +31,9 @@ class CodeExecutionRequest(BaseModel):
 async def execute_code(request: CodeExecutionRequest, response: Response):
     try:
         t1 = current_milli_time()
+        box_number = str(random.randint(0, 999))
         process = await asyncio.create_subprocess_exec(
-            "isolate", "--init",
+            "isolate", "--init", f"--box={box_number}",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -47,7 +47,6 @@ async def execute_code(request: CodeExecutionRequest, response: Response):
             )
         
         box_dir = Path(box_path) / "box"
-        box_number = box_path.split("/")[-1]
         os.chdir(box_dir)
 
         # Normalize code formatting
