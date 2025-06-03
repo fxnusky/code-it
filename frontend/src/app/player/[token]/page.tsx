@@ -102,13 +102,7 @@ export default function Profile() {
                 setPosition(message.position);
             }
         }else if (message.action === "game_ended"){
-            setState(message.action);
-            if (message.points){
-                setPoints(message.points);
-            }
-            if (message.position){
-                setPosition(message.position);
-            }
+            router.push("/join-room")
         }else if (message.action === "manager_disconnected"){
             setIsManagerConnected(false);
         }else if (message.action === "manager_connected"){
@@ -149,9 +143,6 @@ export default function Profile() {
             )}
             {state == "ranking" &&  (
                 <PlayerRanking position={position} nickname={nickname} points={points}></PlayerRanking>
-            )}
-            {state == "game_ended" &&  (
-                <Button onClick={() => {router.push("/join-room")}}>Close</Button>
             )}
             {state == "error" &&  (
                 <div className={styles.container}>

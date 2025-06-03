@@ -129,7 +129,11 @@ export default function Manager() {
   const handleShowRanking = () =>{
     connectionService.sendMessage({"action": "show_ranking"})
   }
-
+  useEffect(()=> {
+    if (state == "game_ended"){
+      router.push("/profile")
+    }
+  }, [state])
   useEffect(() => {
     const connectToRoom = async () => {
       try {
@@ -163,9 +167,6 @@ export default function Manager() {
       )}
       {state == "ranking" && ranking &&(
         <ManagerRanking ranking={ranking} handleNextQuestion={handleNextQuestion}></ManagerRanking>
-      )}
-      {state == "game_ended" &&  (
-        <Button onClick={() => {router.push("/profile")}}>Close</Button>
       )}
       {state == "error" &&  (
         <div className={styles.container}>

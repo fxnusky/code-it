@@ -116,11 +116,9 @@ class WsConnectionService {
         };
 
         this.socket.onclose = (event) => {
-          if (!this.scheduleReconnect()) {
-            this.connectionState = 'closed';
-            console.log(`WebSocket disconnected: ${event.code} - ${event.reason}`);
-            this.cleanUp();
-          }
+          this.connectionState = 'closed';
+          console.log(`WebSocket disconnected: ${event.code} - ${event.reason}`);
+          this.cleanUp();
         };
 
         this.socket.onmessage = (event) => {

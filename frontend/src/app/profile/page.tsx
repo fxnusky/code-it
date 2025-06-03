@@ -39,7 +39,6 @@ export default function Profile() {
       if (response && response.status === "success") {
         router.push(`/game-manager/${response.data["room_code"]}`);
       } else if (response?.status_code === 405) {
-        console.log("ENTRA", response)
         setTemplateId(template_id)
         setRoomCode(response.data["room_code"])
         setDialogOpen(true); 
@@ -58,6 +57,10 @@ export default function Profile() {
     router.push('/login'); 
   };
 
+  const handleJoinRoom = () => {
+    router.push('/join-room'); 
+  };
+
   const handleContinueExistingGame = () => {
     router.push(`/game-manager/${roomCode}`);
     setDialogOpen(false)
@@ -70,6 +73,11 @@ export default function Profile() {
   return (
     <RequireAuth>
       <div className={styles.pageContainer}>
+        <div className={styles.joinRoomContainer}>
+          <Button variant={"ghost"} onClick={handleJoinRoom}>
+            Join Room
+          </Button>
+        </div>
         <div className={styles.logoutContainer}>
           <Button onClick={handleLogout}>
             Log Out

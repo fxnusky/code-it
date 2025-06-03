@@ -57,14 +57,14 @@ class UserRepository:
         
     def update_active_room(self, google_id: str, room_code: str):
         try:
-            user = self.db.query(User).filter(User.google_id == google_id).first()
+            user = self.get_user_by_google_id(google_id)
             
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="User not found"
                 )
-                
+            
             user.active_room = room_code
             self.db.commit()
             self.db.refresh(user)

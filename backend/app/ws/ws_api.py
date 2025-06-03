@@ -15,6 +15,7 @@ from ..repositories.submission_repository import SubmissionRepository
 from ..services.test_case_execution_service import TestCaseExecutionService
 from ..repositories.test_case_execution_repository import TestCaseExecutionRepository
 import logging
+from fastapi.websockets import WebSocketState
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,15 +42,15 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                     detail="This player is not authorized to connect to this room."
                 )
             question = None
-            state = game_connection_service.state
+            state = game_connection_service.get_state(room_code)
             submission_repository = SubmissionRepository(db)
             submission_service = SubmissionService(submission_repository)
-            if game_connection_service.state == "question" and game_connection_service.current_question_id:
+            if game_connection_service.get_state(room_code) == "question" and game_connection_service.get_current_question_id(room_code):
                 question_repository = QuestionRepository(db)
                 question_service = QuestionService(question_repository)
-                question = question_service.get_question_by_id(game_connection_service.current_question_id)
+                question = question_service.get_question_by_id(game_connection_service.get_current_question_id(room_code))
 
-                submission = submission_service.get_submission_by_question_player(game_connection_service.current_question_id, player_id)
+                submission = submission_service.get_submission_by_question_player(game_connection_service.get_current_question_id(room_code), player_id)
                 if submission:
                     state = "question_submitted"
             await game_connection_service.connect_player(websocket, room_code, player_id)
@@ -58,9 +59,9 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
             test_case_execution_service = TestCaseExecutionService(test_case_execution_repository)
 
             question_results = {}
-            if game_connection_service.current_question_id and game_connection_service.state == "question_results":
-                points = submission_service.get_question_results_by_player(player_id, game_connection_service.current_question_id)
-                test_case_executions = test_case_execution_service.get_question_results_by_player(player_id, game_connection_service.current_question_id)
+            if game_connection_service.get_current_question_id(room_code) and game_connection_service.get_state(room_code) == "question_results":
+                points = submission_service.get_question_results_by_player(player_id, game_connection_service.get_current_question_id(room_code))
+                test_case_executions = test_case_execution_service.get_question_results_by_player(player_id, game_connection_service.get_current_question_id(room_code))
                 question_results = {
                     "total_points": points["total_points"],
                     "question_points": points["question_points"],
@@ -74,7 +75,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 "state": state, 
                 "room_code": room_code, 
                 "nickname": nickname, 
-                "manager_connected": game_connection_service.rooms[room_code]["manager"] != None,
+                "manager_connected": game_connection_service.rooms[room_code]["manager"] != None and game_connection_service.rooms[room_code]["manager"].client_state != WebSocketState.DISCONNECTED,
                 "question": question,
                 "question_results": question_results,
                 "points": points,
@@ -92,12 +93,26 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                     await handle_player_message(data, room_code, websocket, game_connection_service, submission_service)
                 
             except WebSocketDisconnect:
-                await game_connection_service.disconnect_player(websocket, room_code, player_id)
-                await game_connection_service.send_manager_message({"action": "player_disconnected"})
+                try:
+                    await game_connection_service.disconnect_player(websocket, room_code, player_id)
+                    with db_session() as db:
+                        await game_connection_service.send_manager_message(
+                            {"action": "player_disconnected"},
+                            room_code
+                        )
+                except Exception as e:
+                    logger.error(f"Error during player disconnect cleanup: {str(e)}")
 
     except WebSocketDisconnect:
-        await game_connection_service.disconnect_player(websocket, room_code, player_id)
-        await game_connection_service.send_manager_message({"action": "player_disconnected"})
+        try:
+            await game_connection_service.disconnect_player(websocket, room_code, player_id)
+            with db_session() as db:
+                await game_connection_service.send_manager_message(
+                    {"action": "player_disconnected"},
+                    room_code
+                )
+        except Exception as e:
+            logger.error(f"Error during player disconnect cleanup: {str(e)}")
         
         
     except Exception as e:
@@ -130,9 +145,9 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
 
         question = None
         submissions = None
-        if game_connection_service.state == "question" and game_connection_service.current_question_id:
-            submissions = submission_service.get_submissions_by_question_room(room_code, game_connection_service.current_question_id)
-            question = question_service.get_question_by_id(game_connection_service.current_question_id)
+        if game_connection_service.get_state(room_code) == "question" and game_connection_service.get_current_question_id(room_code):
+            submissions = submission_service.get_submissions_by_question_room(room_code, game_connection_service.get_current_question_id(room_code))
+            question = question_service.get_question_by_id(game_connection_service.get_current_question_id(room_code))
         
         player_repository = PlayerRepository(db)
         player_service = PlayerService(player_repository)
@@ -140,17 +155,17 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
 
         
         result_stats = {}
-        if game_connection_service.current_question_id and game_connection_service.state == "question_results":
-            result_stats = submission_service.get_question_results_stats(room_code, game_connection_service.current_question_id)
+        if game_connection_service.get_current_question_id(room_code) and game_connection_service.get_state(room_code) == "question_results":
+            result_stats = submission_service.get_question_results_stats(room_code, game_connection_service.get_current_question_id(room_code))
         
         ranking = submission_service.get_total_points_players(room_code)
 
         await game_connection_service.send_message({
             "action": "status", 
-            "state": game_connection_service.state, 
+            "state": game_connection_service.get_state(room_code), 
             "question_ids": question_ids, 
             "players": players, 
-            "current_question_id": game_connection_service.current_question_id,
+            "current_question_id": game_connection_service.get_current_question_id(room_code),
             "question": question,
             "stats": result_stats,
             "submissions": submissions,
@@ -166,7 +181,7 @@ async def websocket_manager_endpoint(websocket: WebSocket, token: str = Query(..
                 data = await websocket.receive_json()
                 test_case_execution_repository = TestCaseExecutionRepository(db)
                 test_case_execution_service = TestCaseExecutionService(test_case_execution_repository)
-                await handle_manager_message(data, room_code, game_connection_service, db, question_service, submission_service, test_case_execution_service)
+                await handle_manager_message(data, room_code, game_connection_service, db, question_service, submission_service, test_case_execution_service, user_repository, token, auth_service)
             except WebSocketDisconnect:
                 await game_connection_service.disconnect_manager(room_code)
                 await game_connection_service.broadcast_players({"action": "manager_disconnected"}, room_code)
