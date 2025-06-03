@@ -5,6 +5,7 @@ from ..repositories.room_repository import RoomRepository
 from datetime import datetime
 import time
 import logging
+import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,10 +61,12 @@ class GameConnectionService:
         await self.rooms[room_code]["manager"].send_json(message)
 
     async def broadcast_players(self, content: dict, room_code: str, t1:str =-1):
+        tasks = []
+        t2 = self.current_milli_time()
+        content["X-Req-Insights"] = f"received={t1},sent={t2}"
         for connection in self.rooms[room_code]["players"].values():
-            t2 = self.current_milli_time()
-            content["X-Req-Insights"]= f"received={t1},sent={t2}"
-            await connection.send_json(content)
+            tasks.append(connection.send_json(content))
+        await asyncio.gather(*tasks)
 
     async def set_state(self, new_state: str, room_code: str, db: Session):
         try: 
