@@ -24,7 +24,7 @@ export const options = {
 
 
 export default function () {
-  const url = 'http://34.51.131.76:8000/submit';
+  const url = 'http://localhost:8000/submit';
   const params = {
     headers: {
       'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export default function () {
   if (response.headers['X-Req-Insights']) {
     // Convert header value to number and add to metric
     const parsedDict = parseStringToDict(response.headers['X-Req-Insights']);
-    const before_preparing_exec = parsedDict["prepare_exec"]-parsedDict["received"]
+    const before_preparing_exec = Number(parsedDict["prepare_exec"])-Number(parsedDict["received"])
     parsedDict["executions"].forEach(exec => {
       begin_code_execution.add(before_preparing_exec + exec);
     })
@@ -65,10 +65,12 @@ export default function () {
 }
 const parseStringToDict = (str) => {
   const result = {};
+  console.log(str)
   str.split(',').forEach(pair => {
     const [key, value] = pair.split('=');
-    result[key] = Number(value); 
+    result[key] = value; 
   });
+  console.log(result)
   result["executions"] = result["executions"].split(':').map(Number); 
   return result;
 };

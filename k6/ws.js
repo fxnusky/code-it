@@ -7,10 +7,10 @@ import ws from 'k6/ws'
 // Define custom metric for the header value
 const server_receipt_to_delivery = new Trend('server_receipt_to_delivery_latency', true);
 
-const WS_URL_PLAYER = 'ws://34.51.131.76:8000/ws/player';
-const WS_URL_MANAGER = 'ws://34.51.131.76:8000/ws/manager';
-const URL_CREATE_PLAYER = 'http://34.51.131.76:8000/players';
-const URL_CREATE_ROOM = 'http://34.51.131.76:8000/rooms';
+const WS_URL_PLAYER = 'ws://localhost:8000/ws/player';
+const WS_URL_MANAGER = 'ws://localhost:8000/ws/manager';
+const URL_CREATE_PLAYER = 'http://localhost:8000/players';
+const URL_CREATE_ROOM = 'http://localhost:8000/rooms';
 
 const n_rooms = 2
 const playersPerRoom = 19;
@@ -147,8 +147,8 @@ const res = ws.connect(
             socket.on("message", (event) => {
                 n_mes +=1
                 const data = JSON.parse(event);
-                console.log(data)
                 if (data['X-Req-Insights']) {
+                  console.log(data['X-Req-Insights'])
                     // Convert header value to number and add to metric
                     const parsedDict = parseStringToDict(data['X-Req-Insights']);
                     server_receipt_to_delivery.add(parsedDict["sent"]-parsedDict["received"]);
