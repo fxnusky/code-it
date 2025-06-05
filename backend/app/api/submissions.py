@@ -38,16 +38,13 @@ class CodeSubmissionRequest(BaseModel):
 def normalize_value(value):
     if isinstance(value, str):
         value = value.strip()
-        # Remove surrounding quotes if they exist
         if (value.startswith('"') and value.endswith('"')) or \
            (value.startswith("'") and value.endswith("'")):
             value = value[1:-1]
-        # Convert string booleans to actual booleans
         if value.lower() == "true":
             return True
         if value.lower() == "false":
             return False
-        # Convert string numbers to numbers
         try:
             return int(value)
         except ValueError:
@@ -65,20 +62,16 @@ def get_python_test_code(code: str, main_function: str, input: str):
 import json
 from io import StringIO
 
-# Redirect stdout to suppress prints
 old_stdout = sys.stdout
 sys.stdout = StringIO()
 
 {code}
 
 try:
-    # Call the main function with test case input
     result = {main_function}({input})
     
-    # Restore stdout
     sys.stdout = old_stdout
     
-    # Return only the result as JSON
     print(result)
 except Exception as e:
     sys.stdout = old_stdout
@@ -98,10 +91,8 @@ def get_c_test_code(code: str, main_function: str, input: str):
     code_excluding_main = main_pattern.sub('\n', code)
     
     new_main = f"""int main() {{
-    // Call the function with test input
     int result = {main_function}({input});
     
-    // Print the result in a structured way
     printf("%d", result);
     return 0;
 }}"""
@@ -165,46 +156,37 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
                     timeout=30.0
                 )
                 t5 = current_milli_time()
-                #response.raise_for_status()
                 result = response.json()
                 logger.info(result)
                 submission_id = submission["id"]
                 case_id = test_case.case_id
                 try:
                     if result["status"] == "success":
-                        # First try to parse the output as JSON
                         try:
                             obtained_output = json.loads(result["data"]["output"].strip())
                         except json.JSONDecodeError:
-                            # If not valid JSON, treat as raw string
                             raw_output = result["data"]["output"].strip()
                             
-                            # Special handling for C programs that return plain values
                             if request.language == 'c':
                                 obtained_output = raw_output
                             else:
-                                # For Python, try to evaluate the raw output
                                 try:
                                     obtained_output = literal_eval(raw_output)
                                 except (ValueError, SyntaxError):
                                     obtained_output = raw_output
                         
-                        # Normalize expected output
                         try:
                             expected_evaluated = literal_eval(test_case.expected_output)
                         except (ValueError, SyntaxError):
                             expected_evaluated = test_case.expected_output
                         
-                        # Type-aware comparison
                         if isinstance(expected_evaluated, (int, float)) and isinstance(obtained_output, (int, float)):
                             correct = math.isclose(obtained_output, expected_evaluated, rel_tol=1e-9)
                         elif isinstance(expected_evaluated, bool) or isinstance(obtained_output, bool):
                             correct = bool(expected_evaluated) == bool(obtained_output)
                         elif request.language == 'c':
-                            # For C programs, do direct string comparison
                             correct = str(obtained_output) == str(expected_evaluated)
                         else:
-                            # For Python, do flexible comparison
                             correct = str(obtained_output).strip('\'"') == str(expected_evaluated).strip('\'"')
                             
                     else:

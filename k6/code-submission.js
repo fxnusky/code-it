@@ -3,7 +3,6 @@ import { Trend } from 'k6/metrics';
 import { fail } from 'k6';
 import http from 'k6/http';
 
-// Define custom metric for the header value
 const begin_code_execution = new Trend('begin_code_execution_latency', true);
 const end_code_execution = new Trend('end_code_execution_latency', true);
 const total = new Trend('total_latency', true);
@@ -45,14 +44,12 @@ export default function () {
   if (response.status !== 200){
     fail(response.status +" !== 200")
   }
-  // Check for the header and record its value as a metric
   check(response, {
     'status is 200': (r) => r.status === 200
     
   });
 
   if (response.headers['X-Req-Insights']) {
-    // Convert header value to number and add to metric
     const parsedDict = parseStringToDict(response.headers['X-Req-Insights']);
     const before_preparing_exec = Number(parsedDict["prepare_exec"])-Number(parsedDict["received"])
     parsedDict["executions"].forEach(exec => {
