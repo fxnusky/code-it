@@ -4,7 +4,6 @@ import { Trend } from 'k6/metrics';
 import http from 'k6/http';
 import ws from 'k6/ws'
 
-// Define custom metric for the header value
 const server_receipt_to_delivery = new Trend('server_receipt_to_delivery_latency', true);
 
 const WS_URL_PLAYER = 'ws://localhost:8000/ws/player';
@@ -149,7 +148,6 @@ const res = ws.connect(
                 const data = JSON.parse(event);
                 if (data['X-Req-Insights']) {
                   console.log(data['X-Req-Insights'])
-                    // Convert header value to number and add to metric
                     const parsedDict = parseStringToDict(data['X-Req-Insights']);
                     server_receipt_to_delivery.add(parsedDict["sent"]-parsedDict["received"]);
                 }

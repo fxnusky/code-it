@@ -64,13 +64,11 @@ async def handle_manager_message(data: dict, room_code: str, game_connection_ser
             players_points = submission_service.get_total_points_players(room_code)
             await game_connection_service.set_state("game_ended", room_code, db)
             
-            # Send final messages first
             await game_connection_service.send_manager_message(
                 {"action": "ranking", "ranking": players_points}, 
                 room_code
             )
             
-            # Disconnect all players
             disconnect_tasks = []
             if room_code in game_connection_service.rooms:
                 for player_id, info in players_points.items():
@@ -95,24 +93,20 @@ async def handle_manager_message(data: dict, room_code: str, game_connection_ser
                     except Exception as e:
                         logger.error(f"Error handling player {player_id}: {str(e)}")
                 
-                # Execute all disconnects
                 if disconnect_tasks:
                     await asyncio.gather(*disconnect_tasks, return_exceptions=True)
                 
-                # Update active room and disconnect manager
                 try:
                     user = auth_service.get_or_create_user(token)
                     user_repository.update_active_room(user.google_id, "")
                 except Exception as e:
                     logger.error(f"Failed to update active room: {str(e)}")
                 
-                # Disconnect manager and clean up
                 await game_connection_service.disconnect_manager(room_code)
                 game_connection_service.delete_room(room_code, db)
                 
         except Exception as e:
             logger.error(f"Error during game end: {str(e)}")
-            # Force cleanup if something went wrong
             if room_code in game_connection_service.rooms:
                 game_connection_service.delete_room(room_code, db)
             

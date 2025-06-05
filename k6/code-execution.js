@@ -2,7 +2,6 @@ import { check } from 'k6';
 import { Trend } from 'k6/metrics';
 import http from 'k6/http';
 
-// Define custom metric for the header value
 const begin_code_execution = new Trend('begin_code_execution_latency', true);
 const end_code_execution = new Trend('end_code_execution_latency', true);
 
@@ -17,10 +16,6 @@ export const options = {
         maxVUs: 100
     }
   }
-  /*thresholds: {
-    // Define thresholds for your custom metric
-    'response_header_time': ['p(95)<500'], // 95% of values should be below 500ms
-  },*/
 };
 
 export default function () {
@@ -39,13 +34,11 @@ export default function () {
 
   const response = http.post(url, payload, params);
 
-  // Check for the header and record its value as a metric
   check(response, {
     'status is 200': (r) => r.status === 200
   });
 
   if (response.headers['X-Req-Insights']) {
-    // Convert header value to number and add to metric
     const parsedDict = parseStringToDict(response.headers['X-Req-Insights']);
     begin_code_execution.add(parsedDict["run_start"]-parsedDict["received"]);
     end_code_execution.add(parsedDict["respond"]-parsedDict["run_end"]);
