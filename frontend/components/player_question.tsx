@@ -72,7 +72,7 @@ export const PlayerQuestion = ({
         setTerminalText(formattedError)
       }
       else{
-        setTerminalText("Error")
+        setTerminalText("Error executing the code")
       }
     }
   };

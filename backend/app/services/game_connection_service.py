@@ -39,7 +39,7 @@ class GameConnectionService:
     async def connect_player(self, websocket: WebSocket, room_code: str, player_id: int):
         if self.rooms.get(room_code):
             await websocket.accept()
-            if self.rooms[room_code]["players"].get(player_id) and self.rooms[room_code]["players"].client_state != WebSocketState.DISCONNECTED:
+            if self.rooms[room_code]["players"].get(player_id) and self.rooms[room_code]["players"][player_id].client_state != WebSocketState.DISCONNECTED:
                 self.rooms[room_code]["players"][player_id].close()
             self.rooms[room_code]["players"][player_id] = websocket
 

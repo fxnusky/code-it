@@ -47,7 +47,7 @@ export interface PlayerResult {
 class WsConnectionService {
   private socket: WebSocket | null = null;
   private messageHandler: MessageHandler | null = null;
-  private connectionState: WebSocketState = 'start';
+  connectionState: WebSocketState = 'start';
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
