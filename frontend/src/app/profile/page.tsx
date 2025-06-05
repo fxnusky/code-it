@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/dialog"
 
 const GAME_TEMPLATES = [
-  { id: 1, title: "Template 1", description: "Three easy questions" },
-  { id: 2, title: "Template 2", description: "20 test cases" },
-  { id: 3, title: "Template 3", description: "Sorting questions" },
+  { id: 1, title: "Template 1", description: "Three easy questions (Python)" },
+  { id: 2, title: "Template 2", description: "One question, 20 test cases" },
+  { id: 3, title: "Template 3", description: "Three easy questions (C)" },
 ];
 
 export default function Profile() {
@@ -29,6 +29,7 @@ export default function Profile() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [templateId, setTemplateId] = useState(0);
   const [roomCode, setRoomCode] = useState('');
+  const [errorStartGame, setErrorStartGame] = useState('');
   const {token} = useAuth();
 
   async function handleStartGame(template_id: number, override: boolean = false) {
@@ -37,13 +38,16 @@ export default function Profile() {
       const response: ApiResponse | null = await RoomService.createRoom({ template_id, token, override });
       
       if (response && response.status === "success") {
+        setErrorStartGame("");
         router.push(`/game-manager/${response.data["room_code"]}`);
       } else if (response?.status_code === 405) {
-        setTemplateId(template_id)
-        setRoomCode(response.data["room_code"])
+        setErrorStartGame("");
+        setTemplateId(template_id);
+        setRoomCode(response.data["room_code"]);
         setDialogOpen(true); 
       } else {
-        console.log(response?.status_code)
+        setErrorStartGame("An error occured starting the game.");
+        console.log(response?.status_code);
         console.error('Connection failed:', response?.detail);
       }
     } catch (error) {
@@ -100,6 +104,7 @@ export default function Profile() {
                 </div>
               ))}
             </div>
+            <div>{errorStartGame}</div>
           </div>
         )}
 

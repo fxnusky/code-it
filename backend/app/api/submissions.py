@@ -16,6 +16,7 @@ import math
 from ast import literal_eval
 import time
 import logging
+import re 
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,6 +34,28 @@ class CodeSubmissionRequest(BaseModel):
     time_limit: float = 2.0
     memory_limit: int = 65536
     language: str = 'python'
+
+def normalize_value(value):
+    if isinstance(value, str):
+        value = value.strip()
+        # Remove surrounding quotes if they exist
+        if (value.startswith('"') and value.endswith('"')) or \
+           (value.startswith("'") and value.endswith("'")):
+            value = value[1:-1]
+        # Convert string booleans to actual booleans
+        if value.lower() == "true":
+            return True
+        if value.lower() == "false":
+            return False
+        # Convert string numbers to numbers
+        try:
+            return int(value)
+        except ValueError:
+            try:
+                return float(value)
+            except ValueError:
+                pass
+    return value
 
 def current_milli_time():
     return int(time.time_ns() / 1_000_000)
@@ -62,22 +85,34 @@ except Exception as e:
     print(json.dumps({{"error": str(e)}}))
 """
 def get_c_test_code(code: str, main_function: str, input: str):
-    code = code.split("int main()")[0]
-    return f"""#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-{code}
-
-int main() {{
+    main_pattern = re.compile(
+        r'(?P<prefix>^|\n)[ \t]*'
+        r'(?P<return_type>int\s+|void\s+|)'
+        r'main\s*'
+        r'\((?P<args>[^)]*)\)\s*'
+        r'(?P<declspec>__attribute__\s*\(\(.*?\)\)\s*)?' 
+        r'\s*\{.*?\}\s*', 
+        re.DOTALL | re.MULTILINE
+    )
+    
+    code_excluding_main = main_pattern.sub('\n', code)
+    
+    new_main = f"""int main() {{
     // Call the function with test input
     int result = {main_function}({input});
     
     // Print the result in a structured way
     printf("%d", result);
     return 0;
-}}
-"""
+}}"""
+    
+    return f"""#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+{code_excluding_main.strip()}
+
+{new_main}"""
 
 @router.post("/submit")
 async def submit(request: CodeSubmissionRequest, res: Response, db: Session = Depends(get_db)):
@@ -117,7 +152,6 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
                 test_code = get_python_test_code(request.code, request.main_function, test_case.input)
             else:
                 test_code = get_c_test_code(request.code, request.main_function, test_case.input)
-                logger.info(test_code)
             t4 = current_milli_time()
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -138,25 +172,49 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
                 case_id = test_case.case_id
                 try:
                     if result["status"] == "success":
-                        obtained_output = json.loads(result["data"]["output"].strip())
+                        # First try to parse the output as JSON
+                        try:
+                            obtained_output = json.loads(result["data"]["output"].strip())
+                        except json.JSONDecodeError:
+                            # If not valid JSON, treat as raw string
+                            raw_output = result["data"]["output"].strip()
+                            
+                            # Special handling for C programs that return plain values
+                            if request.language == 'c':
+                                obtained_output = raw_output
+                            else:
+                                # For Python, try to evaluate the raw output
+                                try:
+                                    obtained_output = literal_eval(raw_output)
+                                except (ValueError, SyntaxError):
+                                    obtained_output = raw_output
                         
+                        # Normalize expected output
                         try:
                             expected_evaluated = literal_eval(test_case.expected_output)
                         except (ValueError, SyntaxError):
-                            expected_evaluated = test_case.expected_output 
+                            expected_evaluated = test_case.expected_output
                         
+                        # Type-aware comparison
                         if isinstance(expected_evaluated, (int, float)) and isinstance(obtained_output, (int, float)):
                             correct = math.isclose(obtained_output, expected_evaluated, rel_tol=1e-9)
+                        elif isinstance(expected_evaluated, bool) or isinstance(obtained_output, bool):
+                            correct = bool(expected_evaluated) == bool(obtained_output)
+                        elif request.language == 'c':
+                            # For C programs, do direct string comparison
+                            correct = str(obtained_output) == str(expected_evaluated)
                         else:
-                            correct = obtained_output == expected_evaluated
+                            # For Python, do flexible comparison
+                            correct = str(obtained_output).strip('\'"') == str(expected_evaluated).strip('\'"')
+                            
                     else:
                         obtained_output = result["data"]["error"]
                         correct = False
 
-                except json.JSONDecodeError:
-                    obtained_output = "Invalid output format"
+                except Exception as e:
+                    logger.error(f"Error evaluating test case: {str(e)}")
+                    obtained_output = f"Evaluation error: {str(e)}"
                     correct = False
-                logger.info(correct)
                 test_case_execution_service.create_test_case_execution(submission_id, case_id, obtained_output, correct)
                 t6 = current_milli_time()
                 execution_times.append((t4-t3) + (t6-t5))

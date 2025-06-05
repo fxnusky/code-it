@@ -70,13 +70,13 @@ VALUES
 INSERT INTO questions (description, id, template_id, order_key, time_limit, code_starter, main_function)
 VALUES 
     ('Write a function called "add" that takes two numbers as arguments and returns their sum.', 
-     1, 1, 1, 600, 'def add(a, b):\n    # Your code here', 'add'),
+     1, 1, 1, 600, 'def add(a, b):\n    # Your code here\n\nprint(add(1, 2)) #EXAMPLE: SHOULD RETURN 3', 'add'),
      
     ('Write a function called "is_even" that takes a number and returns True if it''s even, False otherwise.', 
-     2, 1, 2, 450, 'def is_even(num):\n    # Your code here', 'is_even'),
+     2, 1, 2, 450, 'def is_even(num):\n    # Your code here\n\nprint(is_even(2)) #EXAMPLE: SHOULD RETURN True', 'is_even'),
      
-    ('Write a function called "reverse_string" that takes a string and returns the reversed version.', 
-     3, 1, 3, 750, 'def reverse_string(s):\n    # Your code here', 'reverse_string');
+    ('Write a function called "reverse_digits" that takes a positive integer and returns the reversed version.', 
+     3, 1, 3, 750, 'def reverse_digits(d):\n    # Your code here\n\nprint(reverse_digits(12345)) #EXAMPLE: SHOULD RETURN 54321', 'reverse_digits');
 
 
 INSERT INTO test_cases (question_id, input, expected_output, is_hidden)
@@ -95,15 +95,15 @@ VALUES
 
 INSERT INTO test_cases (question_id, input, expected_output, is_hidden)
 VALUES
-    (3, '"hello"', '"olleh"', FALSE),
-    (3, '""', '""', FALSE),
-    (3, '"a"', '"a"', FALSE),
-    (3, '"racecar"', '"racecar"', TRUE);
+    (3, '12345', '54321', FALSE),
+    (3, '0', '0', FALSE),
+    (3, '98642', '24689', FALSE),
+    (3, '78', '87', TRUE);
 
 INSERT INTO questions (description, id, template_id, order_key, time_limit, code_starter, main_function)
 VALUES 
     ('Write a function called "is_prime" that takes a number and returns True if it''s prime, False otherwise.', 
-     4, 2, 1, 1200, 'def is_prime(n):\n    # Your code here', 'is_prime');
+     4, 2, 1, 1200, 'def is_prime(n):\n    # Your code here\n\nprint(is_prime(7)) #EXAMPLE: SHOULD RETURN True', 'is_prime');
 
 INSERT INTO test_cases (question_id, input, expected_output, is_hidden)
 VALUES
@@ -131,13 +131,13 @@ VALUES
 INSERT INTO questions (description, id, template_id, order_key, time_limit, code_starter, main_function, language)
 VALUES 
     ('Write a function called "add" that takes two integers and returns their sum.', 
-     5, 3, 1, 600, 'int add(int a, int b) {\n    // Your code here\n}', 'add', 'c'),
+     5, 3, 1, 600, '#include <stdio.h>\n\nint add(int a, int b) {\n    // Your code here\n}\n\nint main() {\n    printf("%d", add(1, 2)); //EXAMPLE: SHOULD RETURN 3\n    return 0;\n}', 'add', 'c'),
      
     ('Write a function called "is_even" that takes an integer and returns 1 if it''s even, 0 otherwise.', 
-     6, 3, 2, 450, 'int is_even(int num) {\n    // Your code here\n}', 'is_even', 'c'),
+     6, 3, 2, 450, '#include <stdio.h>\n\nint is_even(int num) {\n    // Your code here\n}\n\nint main() {\n    printf("%d", is_even(2)); //EXAMPLE: SHOULD RETURN 1\n    return 0;\n}', 'is_even', 'c'),
      
-    ('Write a function called "reverse_string" that takes a string and reverses it in-place.', 
-     7, 3, 3, 750, '#include <string.h>\n\nvoid reverse_string(char* s) {\n    // Your code here\n}', 'reverse_string', 'c');
+    ('Write a function called "reverse_digits" that takes a positive integer and returns the reversed version.', 
+     7, 3, 3, 750, '#include <stdio.h>\n\nint reverse_digits(int d) {\n    // Your code here\n}\n\nint main() {\n    printf("%d", reverse_digits(12345)); //EXAMPLE: SHOULD RETURN 54321\n    return 0;\n}', 'reverse_digits', 'c');
 
 INSERT INTO test_cases (question_id, input, expected_output, is_hidden)
 VALUES
