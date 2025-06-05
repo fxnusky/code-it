@@ -4,17 +4,23 @@ import { Button } from "@/components/ui/button"
 
 type ManagerRankingProps = {
   ranking: [number, string, number][];
+  isLastRanking: boolean;
   handleNextQuestion: () => void;
 };
 
 export const ManagerRanking = ({
   ranking,
+  isLastRanking,
   handleNextQuestion
 }: ManagerRankingProps) => {
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Leaderboard</h1>
-      
+      {isLastRanking?(
+        <h1 className={styles.title}>Final Ranking</h1>
+      ):(
+        <h1 className={styles.title}>Leaderboard</h1>
+      )}
+            
       <div className={styles.playersWall}>
         <div className={styles.rankingHeader}>
           <span>Rank</span>

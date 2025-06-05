@@ -27,6 +27,7 @@ export default function Manager() {
   const [results, setResults] = useState<ManagerResult[] | null>(null);
   const questionIndexRef = useRef(questionIndex);
   const [submissions, setSubmissions] = useState(0);
+  const [isLastRanking, setIsLastRanking] = useState(false);
   const [ranking, setRanking] = useState<[number, string, number][] | null>(null);
   const connectionService = useWSConnection();
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function Manager() {
     setQuestionIndex(newIndex);
     questionIndexRef.current = newIndex;
   }
-  
+
   const handleMessage = (message: GameMessage) => {
     console.log('Received game message:', message);
     if (message.action === "player_joined" || message.action === "player_disconnected"){
@@ -105,6 +106,11 @@ export default function Manager() {
     }
     
   };
+  useEffect (()=>{
+    if (questionIndex +1 === questionIds.length){
+      setIsLastRanking(true)
+    }
+  }, [questionIndex, questionIds])
 
   const handleEndQuestion = () => {
     const roomData = JSON.parse(localStorage.getItem(`room-${room_code}`) || '{}');
@@ -166,7 +172,7 @@ export default function Manager() {
         <ManagerResults results={results} handleShowRanking={handleShowRanking}></ManagerResults>
       )}
       {state == "ranking" && ranking &&(
-        <ManagerRanking ranking={ranking} handleNextQuestion={handleNextQuestion}></ManagerRanking>
+        <ManagerRanking ranking={ranking} handleNextQuestion={handleNextQuestion} isLastRanking={isLastRanking}></ManagerRanking>
       )}
       {state == "error" &&  (
         <div className={styles.container}>
