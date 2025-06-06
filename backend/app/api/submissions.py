@@ -17,6 +17,7 @@ from ast import literal_eval
 import time
 import logging
 import re 
+import os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -146,7 +147,7 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
             t4 = current_milli_time()
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "http://isolate-service:8001/execute",
+                    f"http://{os.getenv('ISOLATE_SERVICE_URL')}:8001/execute",
                     json={
                         "code": test_code,
                         "time_limit": request.time_limit,
