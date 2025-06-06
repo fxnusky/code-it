@@ -10,7 +10,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://frontend:80", "http://localhost:3000"],
+    allow_origins=["http://frontend:80", "http://localhost:3000, https://code-it-git-main-fxnuskys-projects.vercel.app", "https://www.code-it-game.xyz"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

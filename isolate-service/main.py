@@ -15,7 +15,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000, https://code-it-git-main-fxnuskys-projects.vercel.app", "https://www.code-it-game.xyz"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,6 +26,10 @@ class CodeExecutionRequest(BaseModel):
     time_limit: Optional[float] = 2.0  # seconds
     memory_limit: Optional[int] = 65536  # KB
     language: Optional[str] = 'python'
+
+@app.post("/")
+async def hello():
+    return "hello world"
 
 @app.post("/execute")
 async def execute_code(request: CodeExecutionRequest, response: Response):
