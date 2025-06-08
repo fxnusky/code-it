@@ -44,7 +44,7 @@ class SubmissionService:
         except HTTPException: 
             raise
 
-    def get_submission_by_question_player(self, player_id: str, question_id: int):
+    def get_submission_by_question_player(self, player_id: int, question_id: int):
         try:
             return self.submission_repository.get_submission(player_id, question_id)
         except HTTPException: 

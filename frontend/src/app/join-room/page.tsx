@@ -66,7 +66,7 @@ export default function JoinGame() {
         } catch (error) {
             console.error('Connection failed:', error);
         } finally{
-            setIsLoading(true);
+            setIsLoading(false);
         }
       }
       connect();
