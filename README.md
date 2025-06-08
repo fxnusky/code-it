@@ -17,11 +17,19 @@ This repository contains six folders:
 - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase
 - ISOLATE_SERVICE_URL=http://isolate-service:8001
 - FRONTEND_URL=http://localhost:3000
-4. From the root repository, execute:
+4. Add to the `/frontend` directory an `.env` file with the following environment variables:
+- NEXT_PUBLIC_API_DB_URL=http://localhost:8000
+- NEXT_PUBLIC_ISOLATE_API_DB_URL=http://localhost:8001
+- NEXT_PUBLIC_WS_API_DB_URL=ws://localhost:8000
+5. From the root directory, execute:
+```
+docker build -t isolate-base ./isolate-base
+```
+6. From the root directory, execute:
 ```
 docker-compose up
 ```
-5. Access the following sites to see the services:
+7. Access the following sites to see the services:
 - Frontend: http://localhost:3000
 - Game Service: http://localhost:8000
 - Code Execution Service: http://localhost:8001
@@ -29,7 +37,7 @@ docker-compose up
 ## Load Test Execution
 To run any of the tests against the local code, the project must be running, and k6 must be installed: https://grafana.com/docs/k6/latest/set-up/install-k6/
 
-Run the tests using these commands:
+Run the tests using these commands from the `/k6` directory:
 ```
 // Code Execution Service Load Tests
 k6 run code-execution.js
