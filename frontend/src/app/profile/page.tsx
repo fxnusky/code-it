@@ -46,7 +46,7 @@ export default function Profile() {
         setRoomCode(response.data["room_code"]);
         setDialogOpen(true); 
       } else {
-        setErrorStartGame("An error occured starting the game.");
+        setErrorStartGame("An error occured starting the game. Please, log out and try again.");
         console.log(response?.status_code);
         console.error('Connection failed:', response?.detail);
       }

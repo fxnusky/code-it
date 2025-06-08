@@ -146,8 +146,9 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
                 test_code = get_c_test_code(request.code, request.main_function, test_case.input)
             t4 = current_milli_time()
             async with httpx.AsyncClient() as client:
+                logger.info( f"{os.getenv('ISOLATE_SERVICE_URL')}/execute")
                 response = await client.post(
-                    f"http://{os.getenv('ISOLATE_SERVICE_URL')}:8001/execute",
+                    f"{os.getenv('ISOLATE_SERVICE_URL')}/execute",
                     json={
                         "code": test_code,
                         "time_limit": request.time_limit,
@@ -157,6 +158,7 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
                     timeout=30.0
                 )
                 t5 = current_milli_time()
+                logger.info(response)
                 result = response.json()
                 logger.info(result)
                 submission_id = submission["id"]
@@ -198,7 +200,7 @@ async def submit(request: CodeSubmissionRequest, res: Response, db: Session = De
                     logger.error(f"Error evaluating test case: {str(e)}")
                     obtained_output = f"Evaluation error: {str(e)}"
                     correct = False
-                test_case_execution_service.create_test_case_execution(submission_id, case_id, obtained_output, correct)
+                test_case_execution_service.create_test_case_execution(submission_id, case_id, str(obtained_output), correct)
                 t6 = current_milli_time()
                 execution_times.append((t4-t3) + (t6-t5))
         execution_times_str = ':'.join(str(t) for t in execution_times)

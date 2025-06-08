@@ -78,6 +78,7 @@ const PlayerService = {
               room_code: roomCode
             }),
           });
+          console.log(response)
           
           if (!response.ok) {
             if (response.status === 409 || response.status === 403 || response.status === 405){

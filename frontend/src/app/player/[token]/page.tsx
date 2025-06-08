@@ -114,6 +114,7 @@ export default function Profile() {
     
     async function handleSubmitQuestion(code: string) {
         if (question?.id && question?.main_function && question?.language){
+            setState("question_submitted");
             const question_id = question?.id
             const main_function = question?.main_function
             const language = question?.language

@@ -50,7 +50,7 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 question_service = QuestionService(question_repository)
                 question = question_service.get_question_by_id(game_connection_service.get_current_question_id(room_code))
 
-                submission = submission_service.get_submission_by_question_player(game_connection_service.get_current_question_id(room_code), player_id)
+                submission = submission_service.get_submission_by_question_player(player_id, game_connection_service.get_current_question_id(room_code))
                 if submission:
                     state = "question_submitted"
             await game_connection_service.connect_player(websocket, room_code, player_id)
@@ -113,6 +113,11 @@ async def websocket_player_endpoint(websocket: WebSocket, token: str = Query(...
                 )
         except Exception as e:
             logger.error(f"Error during player disconnect cleanup: {str(e)}")
+            with db_session() as db:
+                await game_connection_service.send_manager_message(
+                    {"action": "player_disconnected"},
+                    room_code
+                )
         
         
     except Exception as e:
